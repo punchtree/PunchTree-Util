@@ -21,11 +21,6 @@
 			<version>1.16.5-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>net.punchtree</groupId>
-			<artifactId>movement</artifactId>
-			<version>1.9.7-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 
 	<build>
