@@ -1,4 +1,4 @@
-name: PunchTreeUtil
+name: PunchTree-Util
 main: net.punchtree.util.PunchTreeUtilPlugin
 version: 1.0
 api-version: 1.16

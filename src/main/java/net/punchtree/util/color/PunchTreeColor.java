@@ -7,9 +7,13 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.scoreboard.Team;
+
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.util.RGBLike;
 
 @SuppressWarnings("serial")
-public class PunchTreeColor extends Color {
+public class PunchTreeColor implements TextColor {
 
 	// Bukkit Colors:
 
@@ -109,50 +113,49 @@ public class PunchTreeColor extends Color {
 //		}
 		
 //		private static ChatColor
-		public static Material getNearestConcrete(Color color) {
-			return getNearestColor(color, MaterialColors.getConcretes()).material;
+		public Material getNearestConcrete() {
+			return getNearestColor(MaterialColors.getConcretes()).material;
 		}
 		
-		public static ChatColor getNearestChatColor(Color color) {
-			return getNearestColor(color, defaults.values()).getChatColor();
+		public ChatColor getNearestChatColor() {
+			return getNearestColor(defaults.values()).getChatColor();
 		}
 		
-		// TODO idk this is only used by a constructor
-		private static ChatColor getNearestChatColor(int red, int green, int blue) {
-			return getNearestColor(red, green, blue, defaults.values()).getChatColor();
-		}
-		
-		public static <TColor extends Color> TColor getNearestColor(Color color, Collection<TColor> colors) {
-			return getNearestColor(color.getRed(), color.getGreen(), color.getBlue(), colors);
+		public <TColor extends RGBLike> TColor getNearestColor(Collection<TColor> colors) {
+			return getNearestColor(this.red, this.green, this.blue, colors);
 		}
 		
 		// This is a naive algorithm based on hue (since monochromatic teams are pretty deece)
 		// For a more advanced algorithm google delta-e
-		public static <TColor extends Color> TColor getNearestColor(int red, int green, int blue, Collection<TColor> colors) {
+		public static <TColor extends RGBLike> TColor getNearestColor(int red, int green, int blue, Collection<TColor> colors) {
 			
 			float[] hsvSource = Color.RGBtoHSB(red, green, blue, null);
 			float[] thisHsv = new float[3];
 			
 			double maxHueDistance = 1.1;
-			double maxSBDistance = 2.1;
+			double maxSaturationDistance = 1.1;
+			double maxBrightnessDistance = 1.1;
 			TColor closest = null;
 			for (TColor c : colors) {
 				
-				thisHsv = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), thisHsv);
+				thisHsv = Color.RGBtoHSB(c.red(), c.green(), c.blue(), thisHsv);
 				
 				double hueDistance = Math.min(Math.abs(hsvSource[0]-thisHsv[0]), 1.-Math.abs(hsvSource[0]-thisHsv[0]));
+				double saturationDistance = Math.abs(hsvSource[1]-thisHsv[1]);
 				double brightnessDistance = Math.abs(hsvSource[2]-thisHsv[2]);
-				double saturationDistance = Math.abs(hsvSource[2]-thisHsv[2]);
-				double sbDistance = brightnessDistance + saturationDistance;
+//				double sbDistance = brightnessDistance + saturationDistance;
 				
 //				double newDistance = 
 //						Math.sqrt(Math.pow((double) (red - c.getRed()), 2)
 //								+ Math.pow((double) (green - c.getGreen()), 2)
 //								+ Math.pow((double) (blue - c.getBlue()), 2));
 				
-				if (hueDistance < maxHueDistance || hueDistance == maxHueDistance && sbDistance < maxSBDistance) {
+				if (hueDistance < maxHueDistance 
+						|| hueDistance == maxHueDistance && saturationDistance < maxSaturationDistance
+						|| hueDistance == maxHueDistance && saturationDistance == maxSaturationDistance && brightnessDistance < maxBrightnessDistance) {
 					maxHueDistance = hueDistance;
-					maxSBDistance = sbDistance;
+					maxSaturationDistance = saturationDistance;
+					maxBrightnessDistance = brightnessDistance;
 					closest = c;
 				}
 			}
@@ -172,32 +175,77 @@ public class PunchTreeColor extends Color {
 	
 		//------------------------------------------------------------------//
 
-		private ChatColor chatColor;
+		private final int red;
+		private final int green;
+		private final int blue;
+		
+		// All these are optionally set
+		private ChatColor alternateChatColor;
 		
 		public PunchTreeColor(int red, int green, int blue){
-			this(red, green, blue, getNearestChatColor(red, green, blue));
+			this(red, green, blue, null);
 		}
 
 		public PunchTreeColor(int red, int green, int blue, ChatColor chatColor){
-			super(red, green, blue);
-			this.chatColor = chatColor;
+			this.red = red;
+			this.green = green;
+			this.blue = blue;
+//			super(red, green, blue);
+			this.alternateChatColor = chatColor;
+		}
+		
+		public PunchTreeColor(java.awt.Color javaColor) {
+			this(javaColor.getRed(), javaColor.getGreen(), javaColor.getBlue());
+		}
+		
+		public PunchTreeColor(org.bukkit.Color bukkitColor) {
+			this(bukkitColor.getRed(), bukkitColor.getGreen(), bukkitColor.getBlue());
 		}
 		
 		public ChatColor getChatColor(){
-			return chatColor;
+			if (alternateChatColor == null) {
+				return getNearestChatColor();
+			}
+			return alternateChatColor;
 		}
 		
 		public void setChatColor(ChatColor chatColor){
-			this.chatColor = chatColor;
+			this.alternateChatColor = chatColor;
+		}
+		
+		public java.awt.Color getJavaColor() {
+			return new java.awt.Color(this.red, this.green, this.blue);
 		}
 		
 		public org.bukkit.Color getBukkitColor(){
-			return org.bukkit.Color.fromRGB(this.getRed(), this.getGreen(), this.getBlue());
+			return org.bukkit.Color.fromRGB(this.red, this.green, this.blue);
+		}
+		
+		public Team getGlowingTeam() {
+			return ColoredScoreboardTeams.getGlowingTeamNearestColor(this);
 		}
 		
 		@Override
 		public String toString() {
-			return chatColor + "";
+			return alternateChatColor + "";
+		}
+
+		@Override
+		public int value() {
+			return ((red & 0xff) << 16) + ((green & 0xff) << 8) + (blue & 0xff);
+		}
+		
+		@Override
+		public boolean equals(Object other) {
+			if (this == other) return true;
+			if (!(other instanceof TextColor)) return false;
+			final TextColor that = (TextColor) other;
+			return this.value() == that.value();
+		}
+		
+		@Override
+		public int hashCode() {
+			return this.value();
 		}
 	
 }
