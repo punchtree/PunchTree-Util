@@ -3,3 +3,8 @@ main: net.punchtree.util.PunchTreeUtilPlugin
 version: 1.0
 api-version: 1.16
 description: Util libraries common to the whole network
+
+commands:
+    debugvar:
+        aliases: dv
+        usage: /debugvar <help|get|set|list>
