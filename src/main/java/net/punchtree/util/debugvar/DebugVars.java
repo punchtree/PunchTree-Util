@@ -39,19 +39,33 @@ public class DebugVars {
 	}
 	
 	public static String getString(String key, String defaultValue) {
-		return debugStrings.getOrDefault(key.toLowerCase(), defaultValue);
+		key = key.toLowerCase();
+		debugStrings.putIfAbsent(key, defaultValue);
+		return debugStrings.get(key);
 	}
 	
 	public static Integer getInteger(String key, Integer defaultValue) {
-		return debugIntegers.getOrDefault(key.toLowerCase(), defaultValue);
+		key = key.toLowerCase();
+		debugIntegers.putIfAbsent(key, defaultValue);
+		return debugIntegers.get(key);
 	}
 	
-	public static Double getDecimal(String key, Double defaultValue) {
-		return debugDecimals.getOrDefault(key.toLowerCase(), defaultValue);
+	public static float getDecimalAsFloat(String key, float defaultValue) {
+		key = key.toLowerCase();
+		debugDecimals.putIfAbsent(key, Double.valueOf(defaultValue));
+		return debugDecimals.get(key).floatValue();
+	}
+	
+	public static double getDecimalAsDouble(String key, double defaultValue) {
+		key = key.toLowerCase();
+		debugDecimals.putIfAbsent(key, defaultValue);
+		return debugDecimals.get(key);
 	}
 	
 	public static Boolean getBoolean(String key, Boolean defaultValue) {
-		return debugBooleans.getOrDefault(key.toLowerCase(), defaultValue);
+		key = key.toLowerCase();
+		debugBooleans.putIfAbsent(key, defaultValue);
+		return debugBooleans.get(key);
 	}
 	
 }
