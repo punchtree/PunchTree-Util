@@ -50,6 +50,13 @@ public class DebugVars {
 		return debugIntegers.get(key);
 	}
 	
+	@Deprecated
+	public static Double getDecimal(String key, Double defaultValue) {
+		key = key.toLowerCase();
+		debugDecimals.putIfAbsent(key, defaultValue);
+		return debugDecimals.get(key);
+	}
+	
 	public static float getDecimalAsFloat(String key, float defaultValue) {
 		key = key.toLowerCase();
 		debugDecimals.putIfAbsent(key, Double.valueOf(defaultValue));
