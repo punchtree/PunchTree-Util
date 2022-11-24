@@ -1,6 +1,6 @@
 name: PunchTree-Util
 main: net.punchtree.util.PunchTreeUtilPlugin
-version: 1.0
+version: 1.1
 api-version: 1.16
 description: Util libraries common to the whole network
 
@@ -8,3 +8,9 @@ commands:
     debugvar:
         aliases: dv
         usage: /debugvar <help|get|set|list>
+        permission: punchtree.debugvar
+        permission-message: You don't have permission to work with debug variables!
+
+permissions:
+    punchtree.debugvar:
+        default: false
