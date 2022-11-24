@@ -2,3 +2,7 @@ bin/*
 *.eml
 *.iml
 /target/
+/.classpath
+/.project
+/.settings/
+.idea
