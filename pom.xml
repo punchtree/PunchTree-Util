@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.punchtree</groupId>
 	<artifactId>punchtree-util</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<name>PunchTree-Util</name>
 
 	<repositories>
@@ -18,7 +18,7 @@
 		<dependency>
 			<groupId>io.papermc.paper</groupId>
 			<artifactId>paper-api</artifactId>
-			<version>1.19.2-R0.1-SNAPSHOT</version>
+			<version>1.19.4-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
@@ -71,4 +71,12 @@
 			</extension>
 		</extensions>
 	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Cxom Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/Cxom/PunchTree-Util</url>
+		</repository>
+	</distributionManagement>
 </project>
