@@ -8,11 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -22,7 +20,7 @@ import java.util.stream.Stream;
 import static net.punchtree.util.playingcards.PlayingCardUtils.*;
 
 @SuppressWarnings("UnstableApiUsage")
-public class PlayingCardInteractListener implements Listener {
+public class CardToCardListener implements Listener {
 
     // Playing cards work by being an item in an item frame
     // Right clicking on the frame takes a card from it into the hot bar if the currently selected slot is open
@@ -42,7 +40,8 @@ public class PlayingCardInteractListener implements Listener {
         EquipmentSlot hand = event.getHand();
         ItemStack itemInHand = player.getInventory().getItem(hand);
 
-        if (isFaceUpCardStack(itemInFrame) || isFaceDownCardStack(itemInFrame)) {
+        if (isCardStack(itemInFrame)) {
+            event.setCancelled(true);
             onInteractWithPlacedCards(hand, itemFrame, player, itemInHand);
         }
     }
@@ -53,6 +52,10 @@ public class PlayingCardInteractListener implements Listener {
             return;
         }
 
+        attemptToDrawCardFromCardStack(hand, itemFrame, player, itemInHand);
+    }
+
+    private void attemptToDrawCardFromCardStack(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
         // If player's hand is empty, draw a card
         if (itemInHand.getType() == Material.AIR) {
             player.getInventory().setItem(hand, drawCard(itemFrame).getNewItem());
@@ -78,17 +81,17 @@ public class PlayingCardInteractListener implements Listener {
         }
     }
 
-    private void addCardOrCardStackToFrame(ItemFrame itemFrame, ItemStack cardOrCardStack) {
+    private void addCardOrCardStackToFrame(ItemFrame itemFrame, ItemStack cardOrCardStackToAdd) {
         ItemStack itemStack = itemFrame.getItem();
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
-        if (isFaceUpCard(cardOrCardStack)) {
-            List<ItemStack> items = Stream.concat(Stream.of(cardOrCardStack), bundleMeta.getItems().stream()).toList();
+        if (isFaceUpCard(cardOrCardStackToAdd)) {
+            List<ItemStack> items = Stream.concat(Stream.of(cardOrCardStackToAdd), bundleMeta.getItems().stream()).toList();
             bundleMeta.setItems(items);
-        } else if (isFaceUpCardStack(cardOrCardStack) || isFaceDownCardStack(cardOrCardStack)) {
-            List<ItemStack> items = Stream.concat(((BundleMeta) cardOrCardStack.getItemMeta()).getItems().stream(), bundleMeta.getItems().stream()).toList();
+        } else if (isCardStack(cardOrCardStackToAdd)) {
+            List<ItemStack> items = Stream.concat(((BundleMeta) cardOrCardStackToAdd.getItemMeta()).getItems().stream(), bundleMeta.getItems().stream()).toList();
             bundleMeta.setItems(items);
-        } else if (isFaceDownCard(cardOrCardStack)) {
-            List<ItemStack> items = Stream.concat(Stream.of(flipCardOrCardStack(cardOrCardStack)), bundleMeta.getItems().stream()).toList();
+        } else if (isFaceDownCard(cardOrCardStackToAdd)) {
+            List<ItemStack> items = Stream.concat(Stream.of(flipCardOrCardStack(cardOrCardStackToAdd)), bundleMeta.getItems().stream()).toList();
             bundleMeta.setItems(items);
         }
         if (!isFaceDownCardStack(itemStack)) {
@@ -108,6 +111,7 @@ public class PlayingCardInteractListener implements Listener {
 
     private PlayingCard drawCard(ItemFrame itemFrame) {
         ItemStack itemStack = itemFrame.getItem();
+
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
 
@@ -129,7 +133,7 @@ public class PlayingCardInteractListener implements Listener {
 
     private void showCardCount(ItemFrame frame) {
         ItemStack item = frame.getItem();
-        if (!isFaceUpCardStack(item) && !isFaceDownCardStack(item)) return;
+        if (!isCardStack(item)) return;
         item.editMeta(meta -> {
             BundleMeta bundleMeta = (BundleMeta) meta;
             bundleMeta.displayName(Component.text(bundleMeta.getItems().size()));

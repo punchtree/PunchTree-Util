@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
+@SuppressWarnings("UnstableApiUsage")
 public class PlayingCardUtils {
 
     private static final NamespacedKey PLAYING_CARDS_KEY = new NamespacedKey(PunchTreeUtilPlugin.getInstance(), "playing_cards");
@@ -24,6 +25,10 @@ public class PlayingCardUtils {
 
     static boolean isCardOrCardStack(ItemStack item) {
         return isFaceUpCard(item) || isFaceUpCardStack(item) || isFaceDownCard(item) || isFaceDownCardStack(item);
+    }
+
+    static boolean isCardStack(ItemStack cardOrCardStackToAdd) {
+        return isFaceUpCardStack(cardOrCardStackToAdd) || isFaceDownCardStack(cardOrCardStackToAdd);
     }
 
     static boolean isFaceUpCardStack(ItemStack item) {

@@ -18,14 +18,14 @@ import org.bukkit.inventory.meta.BundleMeta;
 
 import static net.punchtree.util.playingcards.PlayingCardUtils.*;
 
-public class PlayingCardPlaceOnGroundListener implements Listener {
+@SuppressWarnings("UnstableApiUsage")
+public class CardToGroundListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         // On right click on block with a playing card in hand
         // if there's not an item frame there, create one and place a new card stack with the card in it
         ItemStack itemInHand = event.getItem();
-        boolean isCardStack = isFaceUpCardStack(itemInHand);
         if (!isCardOrCardStack(itemInHand)) return;
 
         // Cancel all events while holding cards or decks, even if they don't cause a card related action
@@ -39,7 +39,7 @@ public class PlayingCardPlaceOnGroundListener implements Listener {
         EquipmentSlot hand = event.getHand();
 
 //        if (player.isSneaking()) {
-        tryPlacingCardOrCardStack(hand, itemInHand, isCardStack, player, clickedBlock, clickedFace);
+        tryPlacingCardOrCardStack(hand, itemInHand, player, clickedBlock, clickedFace);
 //        } else {
 //            drawCard();
 //            if (isHoldingDeck(player, hand)) {
@@ -48,7 +48,7 @@ public class PlayingCardPlaceOnGroundListener implements Listener {
 //        }
     }
 
-    private void tryPlacingCardOrCardStack(EquipmentSlot hand, ItemStack itemInHand, boolean isCardStack, Player player, Block clickedBlock, BlockFace clickedFace) {
+    private void tryPlacingCardOrCardStack(EquipmentSlot hand, ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace) {
         if (!canBlockFaceHaveCardPlacedOnIt(clickedBlock, clickedFace)) return;
 
 
@@ -56,8 +56,8 @@ public class PlayingCardPlaceOnGroundListener implements Listener {
             frameBeforeSpawn.setFacingDirection(clickedFace, true);
             frameBeforeSpawn.setVisible(false);
             frameBeforeSpawn.setRotation(getRotationForYaw(player.getLocation().getYaw()));
-            frameBeforeSpawn.setFixed(true);
-            if (isCardStack && player.isSneaking()) {
+//            frameBeforeSpawn.setFixed(true);
+            if (isFaceUpCardStack(itemInHand) && player.isSneaking()) {
                 BundleMeta meta = (BundleMeta) itemInHand.getItemMeta();
                 ItemStack itemToBeInFrame = PlayingCard.fromItem(meta.getItems().get(0)).getNewPileItem();
                 itemToBeInFrame.editMeta(itemToBeInFrameMeta -> itemToBeInFrameMeta.displayName(null));
@@ -94,7 +94,8 @@ public class PlayingCardPlaceOnGroundListener implements Listener {
                 frameBeforeSpawn.setItem(itemToBeInFrame);
                 player.getInventory().setItem(hand, null);
             } else {
-                ItemStack itemToBeInFrame = (isCardStack || isFaceDownCardStack(itemInHand)) ? itemInHand : PlayingCard.fromItem(itemInHand).getNewPileItem();
+                ItemStack itemToBeInFrame = (isFaceUpCardStack(itemInHand) || isFaceDownCardStack(itemInHand)) ? itemInHand : PlayingCard.fromItem(itemInHand).getNewPileItem();
+//                ItemStack itemToBeInFrame = itemInHand;
                 itemToBeInFrame.editMeta(meta -> meta.displayName(null));
                 frameBeforeSpawn.setItem(itemToBeInFrame);
                 player.getInventory().setItem(hand, null);
@@ -104,8 +105,8 @@ public class PlayingCardPlaceOnGroundListener implements Listener {
 
     private boolean canBlockFaceHaveCardPlacedOnIt(Block clickedBlock, BlockFace clickedFace) {
         if (!clickedBlock.getBlockData().isFaceSturdy(clickedFace, BlockSupport.CENTER)) return false;
-        Material touchingClickedFace = clickedBlock.getRelative(clickedFace).getType();
-        boolean isClickedFaceUnobstructed = touchingClickedFace == Material.AIR || touchingClickedFace.name().contains("DOOR") || touchingClickedFace.name().contains("PANE");
+        Material materialWhereCardWillBe = clickedBlock.getRelative(clickedFace).getType();
+        boolean isClickedFaceUnobstructed = materialWhereCardWillBe == Material.AIR || materialWhereCardWillBe.name().contains("DOOR") || materialWhereCardWillBe.name().contains("PANE");
         return isClickedFaceUnobstructed && !blockFaceHasItemFrame(clickedBlock, clickedFace);
     }
 

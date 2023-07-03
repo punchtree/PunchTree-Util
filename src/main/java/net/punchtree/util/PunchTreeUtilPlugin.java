@@ -29,10 +29,10 @@ public class PunchTreeUtilPlugin extends JavaPlugin {
 
 	private void initializePlayingCards() {
 		getCommand("playingcards").setExecutor(new PlayingCardCommands());
-		Bukkit.getPluginManager().registerEvents(new PlayingCardInteractListener(), this);
-		Bukkit.getPluginManager().registerEvents(new PlayingCardPlaceOnGroundListener(), this);
-		Bukkit.getPluginManager().registerEvents(new PlayingCardBreakListener(), this);
-		Bukkit.getPluginManager().registerEvents(new PlayingCardInventoryListener(), this);
+		Bukkit.getPluginManager().registerEvents(new CardToCardListener(), this);
+		Bukkit.getPluginManager().registerEvents(new CardToGroundListener(), this);
+		Bukkit.getPluginManager().registerEvents(new CardBreakListener(), this);
+		Bukkit.getPluginManager().registerEvents(new CardInventoryListener(), this);
 	}
 
 
