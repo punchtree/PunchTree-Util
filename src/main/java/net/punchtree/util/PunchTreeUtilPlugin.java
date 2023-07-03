@@ -1,5 +1,8 @@
 package net.punchtree.util;
 
+import net.punchtree.util.commands.CustomModelDataCommand;
+import net.punchtree.util.playingcards.*;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -8,10 +11,10 @@ import net.punchtree.util.debugvar.DebugVarCommand;
 
 public class PunchTreeUtilPlugin extends JavaPlugin {
 
-	public static Plugin getPlugin() {
+	public static Plugin getInstance() {
 		return getPlugin(PunchTreeUtilPlugin.class);
 	}
-	
+
 	@Override
 	public void onEnable() {
 		ColoredScoreboardTeams.initializeTeams();
@@ -19,8 +22,18 @@ public class PunchTreeUtilPlugin extends JavaPlugin {
 		DebugVarCommand debugVarCommand = new DebugVarCommand();
 		getCommand("debugvar").setExecutor(debugVarCommand);
 		getCommand("debugvar").setTabCompleter(debugVarCommand);
+		getCommand("cmd").setExecutor(new CustomModelDataCommand());
+
+		initializePlayingCards();
 	}
 
-	
-	
+	private void initializePlayingCards() {
+		getCommand("playingcards").setExecutor(new PlayingCardCommands());
+		Bukkit.getPluginManager().registerEvents(new PlayingCardInteractListener(), this);
+		Bukkit.getPluginManager().registerEvents(new PlayingCardPlaceOnGroundListener(), this);
+		Bukkit.getPluginManager().registerEvents(new PlayingCardBreakListener(), this);
+		Bukkit.getPluginManager().registerEvents(new PlayingCardInventoryListener(), this);
+	}
+
+
 }

@@ -1,0 +1,69 @@
+// PLACING A NEW STACK
+Right clicking a block with:
+ - A face up card
+ - A face up card stack
+ - A face down card
+ - A face down card stack
+ should all place the held item down in a new item frame
+
+
+// DRAWING FROM A STACK
+Right clicking a face up card with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+    - Anything else
+ should remove the placed stack and add the card to the inventory when the inventory is not full
+ should error when the inventory is full
+
+Right clicking a face down card with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+ should remove the placed stack and add the card to the inventory when the inventory is not full
+ should error when the inventory is full
+
+Right clicking a face up card stack with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+ should remove a card from the placed stack and add the card to the inventory when the inventory is not full
+ should error when the inventory is full
+
+Right clicking a face down card stack with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+ should remove a card from the placed stack and add the card to the inventory when the inventory is not full
+ should error when the inventory is full
+
+
+// ADDING CARD(S) TO AN EXISTING STACK
+Shift right clicking a face up card with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+
+Shift right clicking a face down card with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+
+Shift right clicking a face up card stack with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+
+Shift right clicking a face down card stack with:
+    - A face up card
+    - A face up card stack
+    - A face down card
+    - A face down card stack
+
