@@ -48,11 +48,11 @@ public class CardToCardListener implements Listener {
 
     private void onInteractWithPlacedCards(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
         if (player.isSneaking()) {
-            attemptToPlaceCardOnCardStack(hand, itemFrame, player, itemInHand);
+            attemptToDrawCardFromCardStack(hand, itemFrame, player, itemInHand);
             return;
         }
 
-        attemptToDrawCardFromCardStack(hand, itemFrame, player, itemInHand);
+        attemptToPlaceCardOnCardStack(hand, itemFrame, player, itemInHand);
     }
 
     private void attemptToDrawCardFromCardStack(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
