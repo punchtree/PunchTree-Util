@@ -4,13 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BundleMeta;
 
 import static net.punchtree.util.playingcards.PlayingCardUtils.*;
 
+@SuppressWarnings("UnstableApiUsage")
 public class CardInventoryListener implements Listener {
 
     @EventHandler
@@ -32,13 +33,67 @@ public class CardInventoryListener implements Listener {
     }
 
     @EventHandler
-    public void onDragCardStack(InventoryClickEvent event) {
-        if (!isCardOrCardStack(event.getCursor())) return;
-        Bukkit.broadcastMessage(event.getClick().name());
-        Bukkit.broadcastMessage(event.getAction().name());
-        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(event.getCursor()) ? "Card Stack" : "Card"));
-        Bukkit.broadcastMessage("Current is: " + (isCardStack(event.getCurrentItem()) ? "Card Stack" : isCardOrCardStack(event.getCurrentItem()) ? "Card" : "Not a card"));
+    public void onCardClick(InventoryClickEvent event) {
+        ItemStack cursor = event.getCursor();
+        ItemStack currentItem = event.getCurrentItem();
+        if (!isCardOrCardStack(cursor) && !isCardOrCardStack(currentItem)) return;
+
+        ClickType clickType = event.getClick();
+        Bukkit.broadcastMessage(clickType.name());
+        InventoryAction action = event.getAction();
+        Bukkit.broadcastMessage(action.name());
+        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardOrCardStack(cursor) ? "Card" : " Not a card"));
+        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
+
+        if (clickType == ClickType.SWAP_OFFHAND && action == InventoryAction.HOTBAR_SWAP) {
+            event.setCurrentItem(flipCardOrCardStack(currentItem));
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!isCardOrCardStack(cursor) && isCardOrCardStack(currentItem) && clickType == ClickType.RIGHT && action == InventoryAction.PICKUP_HALF) {
+            fixTakingCardsOutOfCardStacks(event, currentItem, false);
+            return;
+        }
+
+        if (!isCardOrCardStack(cursor)) return;
+
+        if (clickType == ClickType.RIGHT && action == InventoryAction.SWAP_WITH_CURSOR && isCardOrCardStack(currentItem)) {
+            ItemStack newCardStack = combineCardStacks(currentItem, cursor);
+            event.setCurrentItem(null);
+            event.setCursor(newCardStack);
+            event.setCancelled(true);
+        } else if (clickType == ClickType.RIGHT && action == InventoryAction.PLACE_ONE && isCardStack(cursor)) {
+            fixTakingCardsOutOfCardStacks(event, cursor, true);
+        }
     }
 
+    private void fixTakingCardsOutOfCardStacks(InventoryClickEvent event, ItemStack cardStack, boolean isCardStackCursor) {
+        boolean isFaceDown = isFaceDownCardStack(cardStack);
+        BundleMeta bundleMeta = (BundleMeta) cardStack.getItemMeta();
+        ItemStack topCard = bundleMeta.getItems().get(0);
+        ItemStack secondCard = bundleMeta.getItems().get(1);
+        if (isFaceDown) {
+            // TODO remove this caveat when face down decks properly contain face down cards
+            secondCard = flipCardOrCardStack(secondCard);
+        }
+        if (bundleMeta.getItems().size() == 2) {
+            if (isCardStackCursor) {
+                event.setCursor(secondCard);
+                event.setCurrentItem(topCard);
+            } else {
+                event.setCursor(topCard);
+                event.setCurrentItem(secondCard);
+            }
+            event.setCancelled(true);
+            return;
+        }
+
+        // Fix top card if not face down
+        if (!isFaceDown) {
+            bundleMeta.setCustomModelData(secondCard.getItemMeta().getCustomModelData());
+            cardStack.setItemMeta(bundleMeta);
+        }
+    }
 
 }

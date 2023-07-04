@@ -82,23 +82,8 @@ public class CardToCardListener implements Listener {
     }
 
     private void addCardOrCardStackToFrame(ItemFrame itemFrame, ItemStack cardOrCardStackToAdd) {
-        ItemStack itemStack = itemFrame.getItem();
-        BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
-        if (isFaceUpCard(cardOrCardStackToAdd)) {
-            List<ItemStack> items = Stream.concat(Stream.of(cardOrCardStackToAdd), bundleMeta.getItems().stream()).toList();
-            bundleMeta.setItems(items);
-        } else if (isCardStack(cardOrCardStackToAdd)) {
-            List<ItemStack> items = Stream.concat(((BundleMeta) cardOrCardStackToAdd.getItemMeta()).getItems().stream(), bundleMeta.getItems().stream()).toList();
-            bundleMeta.setItems(items);
-        } else if (isFaceDownCard(cardOrCardStackToAdd)) {
-            List<ItemStack> items = Stream.concat(Stream.of(flipCardOrCardStack(cardOrCardStackToAdd)), bundleMeta.getItems().stream()).toList();
-            bundleMeta.setItems(items);
-        }
-        if (!isFaceDownCardStack(itemStack)) {
-            updateTopCardOfStack(bundleMeta);
-        }
-        itemStack.setItemMeta(bundleMeta);
-        itemFrame.setItem(itemStack);
+        ItemStack combinedStack = combineCardStacks(cardOrCardStackToAdd, itemFrame.getItem());
+        itemFrame.setItem(combinedStack);
         showCardCount(itemFrame);
     }
 

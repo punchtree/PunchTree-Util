@@ -6,16 +6,17 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("UnstableApiUsage")
 public class PlayingCardUtils {
 
     private static final NamespacedKey PLAYING_CARDS_KEY = new NamespacedKey(PunchTreeUtilPlugin.getInstance(), "playing_cards");
-
-    private static final Material PLAYING_CARD_MATERIAL = Material.PAPER;
-    private static final Material PLAYING_CARD_STACK_MATERIAL = Material.BUNDLE;
 
     private static final int PLAYING_CARD_MIN_CUSTOM_MODEL_DATA = 1001;
     private static final int PLAYING_CARD_MAX_CUSTOM_MODEL_DATA = 1052;
@@ -33,7 +34,7 @@ public class PlayingCardUtils {
 
     static boolean isFaceUpCardStack(ItemStack item) {
         return item != null
-                && item.getType() == PLAYING_CARD_STACK_MATERIAL
+                && item.getType() == PlayingCard.PLAYING_CARD_STACK_MATERIAL
                 && item.hasItemMeta()
                 && item.getItemMeta().hasCustomModelData()
                 && item.getItemMeta().getCustomModelData() >= PLAYING_CARD_STACK_MIN_CUSTOM_MODEL_DATA
@@ -42,7 +43,7 @@ public class PlayingCardUtils {
 
     static boolean isFaceUpCard(ItemStack item) {
         return item != null
-                && item.getType() == PLAYING_CARD_MATERIAL
+                && item.getType() == PlayingCard.PLAYING_CARD_MATERIAL
                 && item.hasItemMeta()
                 && item.getItemMeta().hasCustomModelData()
                 && item.getItemMeta().getCustomModelData() >= PLAYING_CARD_MIN_CUSTOM_MODEL_DATA
@@ -51,7 +52,7 @@ public class PlayingCardUtils {
 
     static boolean isFaceDownCard(ItemStack item) {
         return item != null &&
-                item.getType() == PLAYING_CARD_MATERIAL
+                item.getType() == PlayingCard.PLAYING_CARD_MATERIAL
                 && item.hasItemMeta()
                 && item.getItemMeta().hasCustomModelData()
                 && item.getItemMeta().getCustomModelData() == 1000
@@ -60,7 +61,7 @@ public class PlayingCardUtils {
 
     static boolean isFaceDownCardStack(ItemStack item) {
         return item != null &&
-                item.getType() == PLAYING_CARD_STACK_MATERIAL
+                item.getType() == PlayingCard.PLAYING_CARD_STACK_MATERIAL
                 && item.hasItemMeta()
                 && item.getItemMeta().hasCustomModelData()
                 && item.getItemMeta().getCustomModelData() == 1000;
@@ -76,24 +77,24 @@ public class PlayingCardUtils {
 
     static ItemStack flipCardOrCardStack(ItemStack item) {
         if (isFaceDownCard(item)) {
-            ItemMeta meta = item.getItemMeta();
-            List<PlayingCard> cards = meta.getPersistentDataContainer().get(PLAYING_CARDS_KEY, new CardStackPersistentDataType());
-            return PlayingCard.getItemForCardList(cards);
+            return flipFaceDownCard(item);
         } else if (isFaceDownCardStack(item)) {
             item.editMeta(meta -> {
-                ItemStack topCard = ((BundleMeta) item.getItemMeta()).getItems().get(0);
+                BundleMeta bundleMeta = (BundleMeta) meta;
+//                ItemStack topCard = flipFaceDownCard(bundleMeta.getItems().get(0));
+                ItemStack topCard = bundleMeta.getItems().get(0);
                 meta.setCustomModelData(topCard.getItemMeta().getCustomModelData());
                 meta.displayName(PlayingCard.fromItem(topCard).getName());
+//                bundleMeta.setItems(bundleMeta.getItems().stream().map(PlayingCardUtils::flipFaceDownCard).collect(Collectors.toList()));
             });
             return item;
         } else if (isFaceUpCard(item)) {
-            ItemStack faceDownCard = PlayingCard.getNewFaceDownCardItem();
-            writeCardToPdc(faceDownCard, PlayingCard.fromItem(item));
-            return faceDownCard;
+            return flipFaceUpCard(item);
         } else if (isFaceUpCardStack(item)) {
             item.editMeta(meta -> {
                 meta.setCustomModelData(1000);
                 BundleMeta bundleMeta = (BundleMeta) meta;
+//                bundleMeta.setItems(bundleMeta.getItems().stream().map(PlayingCardUtils::flipFaceUpCard).collect(Collectors.toList()));
                 bundleMeta.displayName(PlayingCard.FACE_DOWN_CARD_PILE_NAME);
             });
 
@@ -106,6 +107,20 @@ public class PlayingCardUtils {
         }
     }
 
+    @Nullable
+    private static ItemStack flipFaceDownCard(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        List<PlayingCard> cards = meta.getPersistentDataContainer().get(PLAYING_CARDS_KEY, new CardStackPersistentDataType());
+        return PlayingCard.getItemForCardList(cards);
+    }
+
+    @NotNull
+    private static ItemStack flipFaceUpCard(ItemStack item) {
+        ItemStack faceDownCard = PlayingCard.getNewFaceDownCardItem();
+        writeCardToPdc(faceDownCard, PlayingCard.fromItem(item));
+        return faceDownCard;
+    }
+
     static void writeCardToPdc(ItemStack faceDownCard, PlayingCard fromItem) {
         writeCardsToPdc(faceDownCard, List.of(fromItem));
     }
@@ -116,4 +131,29 @@ public class PlayingCardUtils {
         });
     }
 
+    static ItemStack combineCardStacks(ItemStack cardsOnTop, ItemStack cardsOnBottom) {
+
+        if (!isCardStack(cardsOnTop)) {
+            if (isFaceDownCard(cardsOnTop)) {
+                cardsOnTop = flipCardOrCardStack(PlayingCard.fromItem(flipCardOrCardStack(cardsOnTop)).getNewPileItem());
+            } else {
+                cardsOnTop = PlayingCard.fromItem(cardsOnTop).getNewPileItem();
+            }
+        }
+        BundleMeta bundleMeta = (BundleMeta) cardsOnTop.getItemMeta();
+        Stream<ItemStack> bottomCardsStream =
+                isFaceUpCard(cardsOnBottom) ? Stream.of(cardsOnBottom) :
+                isFaceDownCard(cardsOnBottom) ? Stream.of(flipCardOrCardStack(cardsOnBottom)) :
+                /* isCardStack */ ((BundleMeta) cardsOnBottom.getItemMeta()).getItems().stream();
+
+        List<ItemStack> items = Stream.concat(bundleMeta.getItems().stream(), bottomCardsStream).toList();
+        bundleMeta.setItems(items);
+
+        if (!isFaceDownCardStack(cardsOnTop)) {
+            updateTopCardOfStack(bundleMeta);
+        }
+
+        cardsOnTop.setItemMeta(bundleMeta);
+        return cardsOnTop;
+    }
 }

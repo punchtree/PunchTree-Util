@@ -2,6 +2,7 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -13,12 +14,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("UnstableApiUsage")
 public record PlayingCard(Suit suit, Rank rank) {
+
+    static final Material PLAYING_CARD_MATERIAL = Material.KNOWLEDGE_BOOK;
+    static final Material PLAYING_CARD_STACK_MATERIAL = Material.BUNDLE;
 
     private static final List<Suit> CUSTOM_MODEL_DATA_SUIT_ORDER = List.of(Suit.HEARTS, Suit.DIAMONDS, Suit.CLUBS, Suit.SPADES);
     private static final List<Rank> CUSTOM_MODEL_DATA_RANK_ORDER = List.of(Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN, Rank.JACK, Rank.QUEEN, Rank.KING);
-    public static final TextComponent FACE_DOWN_CARD_NAME = Component.text("Face Down Card").decoration(TextDecoration.ITALIC, false);
-    public static final TextComponent FACE_DOWN_CARD_PILE_NAME = Component.text("Face Down Card Pile").decoration(TextDecoration.ITALIC, false);
+    public static final TextComponent FACE_DOWN_CARD_NAME = Component.text("Playing Card").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
+    public static final TextComponent FACE_DOWN_CARD_PILE_NAME = Component.text("Playing Card Stack").decoration(TextDecoration.ITALIC, false);
 
     public static PlayingCard fromItem(ItemStack drawnCard) {
         int customModelData = drawnCard.getItemMeta().getCustomModelData();
@@ -50,7 +55,7 @@ public record PlayingCard(Suit suit, Rank rank) {
     }
 
     ItemStack getNewItem() {
-        ItemStack card = new ItemStack(Material.PAPER, 1);
+        ItemStack card = new ItemStack(PLAYING_CARD_MATERIAL, 1);
         card.editMeta(meta -> {
             meta.setCustomModelData(getCustomModelDataNumber());
             meta.displayName(getName());
@@ -59,7 +64,7 @@ public record PlayingCard(Suit suit, Rank rank) {
     }
 
     ItemStack getNewPileItem() {
-        ItemStack cardPile = new ItemStack(Material.BUNDLE, 1);
+        ItemStack cardPile = new ItemStack( PLAYING_CARD_STACK_MATERIAL, 1);
         cardPile.editMeta(meta -> {
             meta.setCustomModelData(getCustomModelDataNumber());
             meta.displayName(getName());
@@ -69,11 +74,11 @@ public record PlayingCard(Suit suit, Rank rank) {
     }
 
     @NotNull TextComponent getName() {
-        return Component.text(rank.getName() + " of " + suit.getName()).decoration(TextDecoration.ITALIC, false);
+        return Component.text(rank.getName() + " of " + suit.getName()).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
     }
 
     public static ItemStack getNewDeck() {
-        ItemStack deck = new ItemStack(Material.BUNDLE);
+        ItemStack deck = new ItemStack(PLAYING_CARD_STACK_MATERIAL);
         deck.editMeta(meta -> {
             BundleMeta bundleMeta = (BundleMeta) meta;
             meta.setCustomModelData(1001);
@@ -82,14 +87,14 @@ public record PlayingCard(Suit suit, Rank rank) {
                     .flatMap(suit -> Arrays.stream(Rank.values())
                             .map(rank -> new PlayingCard(suit, rank).getNewItem()))
                     .collect(Collectors.toList());
-            Collections.shuffle(cardsList);
+//            Collections.shuffle(cardsList);
             bundleMeta.setItems(cardsList);
         });
         return deck;
     }
 
     public static ItemStack getNewFaceDownCardItem() {
-        ItemStack faceDownCard = new ItemStack(Material.PAPER);
+        ItemStack faceDownCard = new ItemStack(PLAYING_CARD_MATERIAL);
         faceDownCard.editMeta(meta -> {
             meta.setCustomModelData(1000);
             meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME);
@@ -98,7 +103,7 @@ public record PlayingCard(Suit suit, Rank rank) {
     }
 
     public static ItemStack getNewFaceDownPileItem() {
-        ItemStack faceDownCardPile = new ItemStack(Material.BUNDLE);
+        ItemStack faceDownCardPile = new ItemStack(PLAYING_CARD_STACK_MATERIAL);
         faceDownCardPile.editMeta(meta -> {
             meta.setCustomModelData(1000);
             meta.displayName(FACE_DOWN_CARD_PILE_NAME);
