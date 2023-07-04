@@ -118,7 +118,8 @@ public class CardToCardListener implements Listener {
 
     private void showCardCount(ItemFrame frame) {
         ItemStack item = frame.getItem();
-        if (!isCardStack(item)) return;
+        // TODO show 1 for a single card
+        if (isSingleCard(item)) return;
         item.editMeta(meta -> {
             BundleMeta bundleMeta = (BundleMeta) meta;
             bundleMeta.displayName(Component.text(bundleMeta.getItems().size()));

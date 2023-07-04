@@ -28,6 +28,10 @@ public class PlayingCardUtils {
         return isFaceUpCard(item) || isFaceUpCardStack(item) || isFaceDownCard(item) || isFaceDownCardStack(item);
     }
 
+    static boolean isSingleCard(ItemStack cardOrCardStackToAdd) {
+        return isFaceUpCard(cardOrCardStackToAdd) || isFaceDownCard(cardOrCardStackToAdd);
+    }
+
     static boolean isCardStack(ItemStack cardOrCardStackToAdd) {
         return isFaceUpCardStack(cardOrCardStackToAdd) || isFaceDownCardStack(cardOrCardStackToAdd);
     }
@@ -133,27 +137,32 @@ public class PlayingCardUtils {
 
     static ItemStack combineCardStacks(ItemStack cardsOnTop, ItemStack cardsOnBottom) {
 
-        if (!isCardStack(cardsOnTop)) {
-            if (isFaceDownCard(cardsOnTop)) {
-                cardsOnTop = flipCardOrCardStack(PlayingCard.fromItem(flipCardOrCardStack(cardsOnTop)).getNewPileItem());
-            } else {
-                cardsOnTop = PlayingCard.fromItem(cardsOnTop).getNewPileItem();
-            }
-        }
-        BundleMeta bundleMeta = (BundleMeta) cardsOnTop.getItemMeta();
-        Stream<ItemStack> bottomCardsStream =
-                isFaceUpCard(cardsOnBottom) ? Stream.of(cardsOnBottom) :
-                isFaceDownCard(cardsOnBottom) ? Stream.of(flipCardOrCardStack(cardsOnBottom)) :
-                /* isCardStack */ ((BundleMeta) cardsOnBottom.getItemMeta()).getItems().stream();
+        // We combine in the order top then bottom, but use the face-up status of the bottom
 
-        List<ItemStack> items = Stream.concat(bundleMeta.getItems().stream(), bottomCardsStream).toList();
-        bundleMeta.setItems(items);
-
-        if (!isFaceDownCardStack(cardsOnTop)) {
-            updateTopCardOfStack(bundleMeta);
+        ItemStack combinedStack;
+        if (isFaceUpCard(cardsOnBottom)) {
+            combinedStack = PlayingCard.fromItem(cardsOnBottom).getNewPileItem();
+        } else if (isFaceDownCard(cardsOnBottom)) {
+            combinedStack = flipCardOrCardStack(PlayingCard.fromItem(flipCardOrCardStack(cardsOnBottom)).getNewPileItem());
+        } else /* isCardStack */ {
+            combinedStack = cardsOnBottom;
         }
 
-        cardsOnTop.setItemMeta(bundleMeta);
-        return cardsOnTop;
+        BundleMeta combinedStackMeta = (BundleMeta) combinedStack.getItemMeta();
+        Stream<ItemStack> bottomCardsStream = combinedStackMeta.getItems().stream();
+        Stream<ItemStack> topCardsStream =
+                isFaceUpCard(cardsOnTop) ? Stream.of(cardsOnTop) :
+                isFaceDownCard(cardsOnTop) ? Stream.of(flipCardOrCardStack(cardsOnTop)) :
+                /* isCardStack */ ((BundleMeta) cardsOnTop.getItemMeta()).getItems().stream();
+
+        List<ItemStack> items = Stream.concat(topCardsStream, bottomCardsStream).toList();
+        combinedStackMeta.setItems(items);
+
+        if (!isFaceDownCardStack(combinedStack)) {
+            updateTopCardOfStack(combinedStackMeta);
+        }
+
+        combinedStack.setItemMeta(combinedStackMeta);
+        return combinedStack;
     }
 }
