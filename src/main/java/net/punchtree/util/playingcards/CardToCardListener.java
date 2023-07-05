@@ -99,6 +99,9 @@ public class CardToCardListener implements Listener {
 
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
+        if (isFaceDownCard(drawnCard)) {
+            drawnCard = flipCardOrCardStack(drawnCard);
+        }
 
         if (isLastCardInStack(bundleMeta)) {
             itemFrame.remove();

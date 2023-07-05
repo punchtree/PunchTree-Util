@@ -20,6 +20,8 @@ public record PlayingCard(Suit suit, Rank rank) {
     static final Material PLAYING_CARD_MATERIAL = Material.KNOWLEDGE_BOOK;
     static final Material PLAYING_CARD_STACK_MATERIAL = Material.BUNDLE;
 
+    static final int CARD_BACK_CUSTOM_MODEL_DATA = 1000;
+
     private static final List<Suit> CUSTOM_MODEL_DATA_SUIT_ORDER = List.of(Suit.HEARTS, Suit.DIAMONDS, Suit.CLUBS, Suit.SPADES);
     private static final List<Rank> CUSTOM_MODEL_DATA_RANK_ORDER = List.of(Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN, Rank.JACK, Rank.QUEEN, Rank.KING);
     public static final TextComponent FACE_DOWN_CARD_NAME = Component.text("Playing Card").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
@@ -96,7 +98,7 @@ public record PlayingCard(Suit suit, Rank rank) {
     public static ItemStack getNewFaceDownCardItem() {
         ItemStack faceDownCard = new ItemStack(PLAYING_CARD_MATERIAL);
         faceDownCard.editMeta(meta -> {
-            meta.setCustomModelData(1000);
+            meta.setCustomModelData(CARD_BACK_CUSTOM_MODEL_DATA);
             meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME);
         });
         return faceDownCard;
@@ -105,7 +107,7 @@ public record PlayingCard(Suit suit, Rank rank) {
     public static ItemStack getNewFaceDownPileItem() {
         ItemStack faceDownCardPile = new ItemStack(PLAYING_CARD_STACK_MATERIAL);
         faceDownCardPile.editMeta(meta -> {
-            meta.setCustomModelData(1000);
+            meta.setCustomModelData(CARD_BACK_CUSTOM_MODEL_DATA);
             meta.displayName(FACE_DOWN_CARD_PILE_NAME);
         });
         return faceDownCardPile;

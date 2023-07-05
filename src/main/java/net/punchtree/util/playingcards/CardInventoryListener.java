@@ -39,11 +39,11 @@ public class CardInventoryListener implements Listener {
         if (!isCardOrCardStack(cursor) && !isCardOrCardStack(currentItem)) return;
 
         ClickType clickType = event.getClick();
-        Bukkit.broadcastMessage(clickType.name());
         InventoryAction action = event.getAction();
-        Bukkit.broadcastMessage(action.name());
-        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardOrCardStack(cursor) ? "Card" : " Not a card"));
-        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
+//        Bukkit.broadcastMessage(clickType.name());
+//        Bukkit.broadcastMessage(action.name());
+//        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardOrCardStack(cursor) ? "Card" : " Not a card"));
+//        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
 
         if (clickType == ClickType.SWAP_OFFHAND && action == InventoryAction.HOTBAR_SWAP) {
             event.setCurrentItem(flipCardOrCardStack(currentItem));
@@ -73,10 +73,7 @@ public class CardInventoryListener implements Listener {
         BundleMeta bundleMeta = (BundleMeta) cardStack.getItemMeta();
         ItemStack topCard = bundleMeta.getItems().get(0);
         ItemStack secondCard = bundleMeta.getItems().get(1);
-        if (isFaceDown) {
-            // TODO remove this caveat when face down decks properly contain face down cards
-            secondCard = flipCardOrCardStack(secondCard);
-        }
+        
         if (bundleMeta.getItems().size() == 2) {
             if (isCardStackCursor) {
                 event.setCursor(secondCard);
