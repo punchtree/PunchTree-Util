@@ -1,6 +1,6 @@
 package net.punchtree.util.playingcards;
 
-import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -61,28 +61,37 @@ public class CardBreakListener implements Listener {
         }
 
         ItemStack cardToDrop = cardOrCardStack;
-        if (cardOrCardStack.getItemMeta() instanceof BundleMeta bundleMeta) {
-            if (isFaceDownCardStack(cardOrCardStack)) {
-                // make this a face down card
-                if (isLastCardInStack(bundleMeta)) {
-                    cardToDrop = flipCardOrCardStack(bundleMeta.getItems().get(0));
-                } else {
-                    // face down card stack > 1
-                    bundleMeta.displayName(PlayingCard.FACE_DOWN_CARD_PILE_NAME);
-                }
+        if (isFaceDownCardStack(cardOrCardStack)) {
+            BundleMeta bundleMeta = (BundleMeta) cardOrCardStack.getItemMeta();
+            // make this a face down card
+            if (isLastCardInStack(bundleMeta)) {
+                // this is legacy behavior
+                Bukkit.broadcastMessage("Breaking a single face down card THAT'S A BUNDLE");
+                cardToDrop = flipCardOrCardStack(bundleMeta.getItems().get(0));
             } else {
-                if (isLastCardInStack(bundleMeta)) {
-                    cardToDrop = bundleMeta.getItems().get(0);
-                } else {
-                    // face up card stack > 1
-                    bundleMeta.displayName(PlayingCard.fromItem(bundleMeta.getItems().get(0)).getName());
-                }
+                // face down card stack > 1
+                bundleMeta.displayName(PlayingCard.FACE_DOWN_CARD_PILE_NAME);
             }
             cardOrCardStack.setItemMeta(bundleMeta);
-        } else {
-            // Card is a single card, not a stack - shouldn't happen
+        } else if (isFaceUpCardStack(cardOrCardStack)) {
+            BundleMeta bundleMeta = (BundleMeta) cardOrCardStack.getItemMeta();
+            if (isLastCardInStack(bundleMeta)) {
+                // this is legacy behavior
+                Bukkit.broadcastMessage("Breaking a single face up card THAT'S A BUNDLE");
+                cardToDrop = bundleMeta.getItems().get(0);
+            } else {
+                // face up card stack > 1
+                bundleMeta.displayName(PlayingCard.fromItem(bundleMeta.getItems().get(0)).getName());
+            }
+            cardOrCardStack.setItemMeta(bundleMeta);
+        } else if (isFaceUpCard(cardOrCardStack)){
+            // need to reset the title because it may be modified by the card count indicator
             cardOrCardStack.editMeta(meta -> meta.displayName(PlayingCard.fromItem(cardOrCardStack).getName()));
-        }
+        } else if (isFaceDownCard(cardOrCardStack)) {
+            // need to reset the title because it may be modified by the card count indicator
+            cardOrCardStack.editMeta(meta -> meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME));
+            cardToDrop = flipCardOrCardStack(cardOrCardStack);
+        } else return;
 
         if (player != null) {
             addItemToInventoryOrDrop(player, itemFrame, cardToDrop);

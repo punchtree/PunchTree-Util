@@ -141,13 +141,11 @@ public class PlayingCardUtils {
 
         // We combine in the order top then bottom, but use the face-up status of the bottom
 
-        ItemStack combinedStack;
-        if (isFaceUpCard(bottomCards)) {
-            combinedStack = PlayingCard.fromItem(bottomCards).getNewPileItem();
-        } else if (isFaceDownCard(bottomCards)) {
-            combinedStack = flipCardOrCardStack(PlayingCard.fromItem(flipCardOrCardStack(bottomCards)).getNewPileItem());
-        } else /* isCardStack */ {
-            combinedStack = bottomCards;
+        ItemStack combinedStack = bottomCards;
+        if (isSingleCard(combinedStack)) {
+            combinedStack = PlayingCard.fromItem(combinedStack).getNewPileItem();
+            // Result of newPileItem will always be face up, so flip it back the way it was
+            combinedStack = isFaceUpCard(bottomCards) ? combinedStack : flipCardOrCardStack(combinedStack);
         }
 
         BundleMeta combinedStackMeta = (BundleMeta) combinedStack.getItemMeta();

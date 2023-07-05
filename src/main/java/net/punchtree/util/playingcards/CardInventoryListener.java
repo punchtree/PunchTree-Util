@@ -55,7 +55,7 @@ public class CardInventoryListener implements Listener {
         if (clickType == ClickType.DOUBLE_CLICK && isCardOrCardStack(cursor)) {
             List<ItemStack> allCardsOrCardStacks = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
                     .filter(PlayingCardUtils::isCardOrCardStack)
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (allCardsOrCardStacks.isEmpty() && isCardStack(cursor)) {
                 event.setCurrentItem(cursor); // This just prevents adding items from taking up the current item slot
@@ -91,7 +91,9 @@ public class CardInventoryListener implements Listener {
 
         if (!isCardOrCardStack(cursor)) return;
 
-        if (clickType == ClickType.RIGHT && action == InventoryAction.SWAP_WITH_CURSOR && isCardOrCardStack(currentItem)) {
+        // Checking for action NOTHING is only necessary for combining identical cards - meaning that if we are using a
+        // randomized nbt to make paper nonstackable, it's probably not necessary - still, it's probably harmless
+        if (clickType == ClickType.RIGHT && (action == InventoryAction.SWAP_WITH_CURSOR || action == InventoryAction.NOTHING) && isCardOrCardStack(currentItem)) {
             ItemStack newCardStack = combineCardStacks(currentItem, cursor);
             event.setCurrentItem(null);
             event.setCursor(newCardStack);

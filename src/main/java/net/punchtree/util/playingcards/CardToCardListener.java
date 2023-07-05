@@ -2,7 +2,9 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.text.Component;
 import net.punchtree.util.PunchTreeUtilPlugin;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,8 +16,6 @@ import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Stream;
 
 import static net.punchtree.util.playingcards.PlayingCardUtils.*;
 
@@ -40,7 +40,7 @@ public class CardToCardListener implements Listener {
         EquipmentSlot hand = event.getHand();
         ItemStack itemInHand = player.getInventory().getItem(hand);
 
-        if (isCardStack(itemInFrame)) {
+        if (isCardOrCardStack(itemInFrame)) {
             event.setCancelled(true);
             onInteractWithPlacedCards(hand, itemFrame, player, itemInHand);
         }
@@ -89,6 +89,10 @@ public class CardToCardListener implements Listener {
 
     private PlayingCard peekCard(ItemFrame itemFrame) {
         ItemStack itemStack = itemFrame.getItem();
+        if (isSingleCard(itemStack)) {
+            return PlayingCard.fromItem(itemStack);
+        }
+
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
         return PlayingCard.fromItem(drawnCard);
@@ -96,6 +100,11 @@ public class CardToCardListener implements Listener {
 
     private PlayingCard drawCard(ItemFrame itemFrame) {
         ItemStack itemStack = itemFrame.getItem();
+
+        if (isSingleCard(itemStack)) {
+            itemFrame.remove();
+            return PlayingCard.fromItem(itemStack);
+        }
 
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
@@ -105,6 +114,9 @@ public class CardToCardListener implements Listener {
 
         if (isLastCardInStack(bundleMeta)) {
             itemFrame.remove();
+        } else if (bundleMeta.getItems().size() == 2) {
+            itemFrame.setItem(bundleMeta.getItems().get(1));
+            showCardCount(itemFrame);
         } else {
             bundleMeta.setItems(bundleMeta.getItems().subList(1, bundleMeta.getItems().size()));
 
@@ -121,13 +133,17 @@ public class CardToCardListener implements Listener {
 
     private void showCardCount(ItemFrame frame) {
         ItemStack item = frame.getItem();
-        // TODO show 1 for a single card
-        if (isSingleCard(item)) return;
-        item.editMeta(meta -> {
-            BundleMeta bundleMeta = (BundleMeta) meta;
-            bundleMeta.displayName(Component.text(bundleMeta.getItems().size()));
-        });
+
+        if (isSingleCard(item)) {
+            item.editMeta(meta -> meta.displayName(Component.text("1")));
+        } else {
+            item.editMeta(meta -> {
+                BundleMeta bundleMeta = (BundleMeta) meta;
+                bundleMeta.displayName(Component.text(bundleMeta.getItems().size()));
+            });
+        }
         frame.setItem(item);
+
         new BukkitRunnable() {
             @Override
             public void run() {

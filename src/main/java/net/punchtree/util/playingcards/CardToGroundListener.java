@@ -85,17 +85,24 @@ public class CardToGroundListener implements Listener {
                     itemInHand.setItemMeta(meta);
                 }
             } else if (isFaceDownCard(itemInHand)) {
-                ItemStack itemToBeInFrame = PlayingCard.getNewFaceDownPileItem();
+//                ItemStack itemToBeInFrame = PlayingCard.getNewFaceDownPileItem();
+//                itemToBeInFrame.editMeta(meta -> {
+//                    BundleMeta bundleMeta = (BundleMeta) meta;
+//                    meta.displayName(null);
+//                    bundleMeta.addItem(flipCardOrCardStack(itemInHand));
+//                });
+
+                // This implementation would be for if a single card is represented using a different item than a card stack
+                ItemStack itemToBeInFrame = itemInHand;
                 itemToBeInFrame.editMeta(meta -> {
-                    BundleMeta bundleMeta = (BundleMeta) meta;
                     meta.displayName(null);
-                    bundleMeta.addItem(flipCardOrCardStack(itemInHand));
                 });
+
                 frameBeforeSpawn.setItem(itemToBeInFrame);
                 player.getInventory().setItem(hand, null);
             } else {
-                ItemStack itemToBeInFrame = (isFaceUpCardStack(itemInHand) || isFaceDownCardStack(itemInHand)) ? itemInHand : PlayingCard.fromItem(itemInHand).getNewPileItem();
-//                ItemStack itemToBeInFrame = itemInHand;
+//                ItemStack itemToBeInFrame = isCardStack(itemInHand) ? itemInHand : PlayingCard.fromItem(itemInHand).getNewPileItem();
+                ItemStack itemToBeInFrame = itemInHand;
                 itemToBeInFrame.editMeta(meta -> meta.displayName(null));
                 frameBeforeSpawn.setItem(itemToBeInFrame);
                 player.getInventory().setItem(hand, null);
