@@ -150,18 +150,17 @@ public class PlayingCardUtils {
 
         BundleMeta combinedStackMeta = (BundleMeta) combinedStack.getItemMeta();
         Stream<ItemStack> bottomCardsStream = combinedStackMeta.getItems().stream();
-//        Bukkit.broadcastMessage("topCards are " + (isFaceUpCard(topCards) || isFaceUpCardStack(topCards) ? "face up" : "face down"));
+
         ItemStack faceUpTopCards =
                 isFaceUpCard(topCards) || isFaceUpCardStack(topCards) ? topCards :
                 flipCardOrCardStack(topCards);
-//        Bukkit.broadcastMessage("topCards are NOW " + (isFaceUpCard(faceUpTopCards) || isFaceUpCardStack(faceUpTopCards) ? "face up" : "face down"));
 
         ItemStack facedCorrectlyTopCards = isFaceUpCardStack(combinedStack) ?  faceUpTopCards : flipCardOrCardStack(faceUpTopCards);
 
         Stream<ItemStack> topCardsStream = isSingleCard(facedCorrectlyTopCards) ? Stream.of(facedCorrectlyTopCards) : ((BundleMeta) facedCorrectlyTopCards.getItemMeta()).getItems().stream();
-        List<ItemStack> items = Stream.concat(topCardsStream, bottomCardsStream).toList();
+        List<ItemStack> combinedCardsList = Stream.concat(topCardsStream, bottomCardsStream).toList();
 
-        combinedStackMeta.setItems(items);
+        combinedStackMeta.setItems(combinedCardsList);
 
         if (isFaceUpCardStack(combinedStack)) {
             updateTopCardOfStack(combinedStackMeta);
