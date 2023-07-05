@@ -108,7 +108,7 @@ public class CardToCardListener implements Listener {
         } else {
             bundleMeta.setItems(bundleMeta.getItems().subList(1, bundleMeta.getItems().size()));
 
-            if (!isFaceDownCardStack(itemStack)) {
+            if (isFaceUpCardStack(itemStack)) {
                 updateTopCardOfStack(bundleMeta);
             }
 

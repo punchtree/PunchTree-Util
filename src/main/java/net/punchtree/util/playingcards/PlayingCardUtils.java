@@ -71,6 +71,8 @@ public class PlayingCardUtils {
     }
 
     static void updateTopCardOfStack(BundleMeta bundleMeta) {
+        if (bundleMeta.getCustomModelData() == PlayingCard.CARD_BACK_CUSTOM_MODEL_DATA) return;
+
         ItemMeta topCardMeta = bundleMeta.getItems().get(0).getItemMeta();
         bundleMeta.setCustomModelData(topCardMeta.getCustomModelData());
         bundleMeta.displayName(topCardMeta.displayName());

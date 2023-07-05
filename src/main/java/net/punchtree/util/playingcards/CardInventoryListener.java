@@ -1,17 +1,18 @@
 package net.punchtree.util.playingcards;
 
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,10 +47,10 @@ public class CardInventoryListener implements Listener {
 
         ClickType clickType = event.getClick();
         InventoryAction action = event.getAction();
-        Bukkit.broadcastMessage(clickType.name());
-        Bukkit.broadcastMessage(action.name());
-        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardOrCardStack(cursor) ? "Card" : " Not a card"));
-        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
+//        Bukkit.broadcastMessage(clickType.name());
+//        Bukkit.broadcastMessage(action.name());
+//        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardOrCardStack(cursor) ? "Card" : " Not a card"));
+//        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
 
         if (clickType == ClickType.DOUBLE_CLICK && isCardOrCardStack(cursor)) {
             List<ItemStack> allCardsOrCardStacks = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
@@ -57,7 +58,6 @@ public class CardInventoryListener implements Listener {
                     .collect(Collectors.toList());
 
             if (allCardsOrCardStacks.isEmpty() && isCardStack(cursor)) {
-                Bukkit.broadcastMessage("No cards in inventory, but cursor is a card stack");
                 event.setCurrentItem(cursor); // This just prevents adding items from taking up the current item slot
                 BundleMeta bundleMeta = (BundleMeta) cursor.getItemMeta();
                 Collection<ItemStack> leftOverCards = event.getWhoClicked().getInventory().addItem(bundleMeta.getItems().toArray(new ItemStack[bundleMeta.getItems().size()])).values();
@@ -124,6 +124,32 @@ public class CardInventoryListener implements Listener {
             bundleMeta.setCustomModelData(secondCard.getItemMeta().getCustomModelData());
             cardStack.setItemMeta(bundleMeta);
         }
+    }
+
+    @EventHandler
+    public void onPlayerCraft(PrepareItemCraftEvent event) {
+        Map<Material, List<ItemStack>> ingredients = Stream.of(event.getInventory().getStorageContents())
+                .collect(Collectors.groupingBy(ItemStack::getType));
+        if (ingredients.size() == 2
+            && ingredients.containsKey(Material.AIR)
+            && ingredients.get(Material.BUNDLE).size() == 1
+            && isCardOrCardStack(ingredients.get(Material.BUNDLE).get(0))) {
+            event.getInventory().setResult(getShuffledCopyOf(ingredients.get(Material.BUNDLE).get(0)));
+        }
+    }
+
+    private ItemStack getShuffledCopyOf(ItemStack cardStack) {
+        ItemStack clone = cardStack.clone();
+        clone.editMeta(meta -> {
+            BundleMeta bundleMeta = (BundleMeta) meta;
+            ArrayList<ItemStack> shuffledCards = new ArrayList<>(bundleMeta.getItems());
+            Collections.shuffle(shuffledCards);
+            bundleMeta.setItems(shuffledCards);
+            if (isFaceUpCardStack(cardStack)) {
+                updateTopCardOfStack(bundleMeta);
+            }
+        });
+        return clone;
     }
 
     // TODO try PlayerInventorySlotChangeEvent for creative picking?
