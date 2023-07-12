@@ -1,5 +1,6 @@
 package net.punchtree.util.playingcards;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Rotation;
@@ -27,6 +28,7 @@ public class CardToGroundListener implements Listener {
         // if there's not an item frame there, create one and place a new card stack with the card in it
         ItemStack itemInHand = event.getItem();
         if (!isCardOrCardStack(itemInHand)) return;
+        if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
 
         // Cancel all events while holding cards or decks, even if they don't cause a card related action
         event.setCancelled(true);

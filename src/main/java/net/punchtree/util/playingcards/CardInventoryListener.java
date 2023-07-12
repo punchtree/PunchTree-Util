@@ -1,12 +1,14 @@
 package net.punchtree.util.playingcards;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +23,9 @@ import static net.punchtree.util.playingcards.PlayingCardUtils.*;
 @SuppressWarnings("UnstableApiUsage")
 public class CardInventoryListener implements Listener {
 
+    private static final Sound SHUFFLING_SOUND = Sound.sound(Key.key("punchtree", "playing_cards.shuffle"), Sound.Source.PLAYER, 1, 1);
+    private static final Sound CARD_FLIP_SOUND = Sound.sound(Key.key("minecraft", "ui.toast.in"), Sound.Source.PLAYER, 1, 1);
+
     @EventHandler
     public void onFlipCard(PlayerSwapHandItemsEvent event) {
         ItemStack mainHandItem = event.getMainHandItem();
@@ -28,14 +33,14 @@ public class CardInventoryListener implements Listener {
             event.setCancelled(true);
             ItemStack flippedCard = flipCardOrCardStack(mainHandItem);
             event.getPlayer().getInventory().setItemInOffHand(flippedCard);
-            event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.UI_TOAST_IN, 1, 1);
+            event.getPlayer().playSound(CARD_FLIP_SOUND);
         }
         ItemStack offHandItem = event.getOffHandItem();
         if (isCardOrCardStack(offHandItem)) {
             event.setCancelled(true);
             ItemStack flippedCard = flipCardOrCardStack(offHandItem);
             event.getPlayer().getInventory().setItemInMainHand(flippedCard);
-            event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.UI_TOAST_IN, 1, 1);
+            event.getPlayer().playSound(CARD_FLIP_SOUND);
         }
     }
 
@@ -51,6 +56,18 @@ public class CardInventoryListener implements Listener {
 //        Bukkit.broadcastMessage(action.name());
 //        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardOrCardStack(cursor) ? "Card" : " Not a card"));
 //        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
+//        Bukkit.broadcastMessage(event.getSlotType().name() + " " + event.getSlot());
+
+        if (event.getSlotType() == SlotType.RESULT && isCardStack(currentItem)) {
+            if (clickType == ClickType.RIGHT) {
+                event.setCancelled(true);
+                return;
+            } else {
+                event.getWhoClicked().playSound(SHUFFLING_SOUND);
+            }
+            return;
+        }
+
 
         if (clickType == ClickType.DOUBLE_CLICK && isCardOrCardStack(cursor)) {
             List<ItemStack> allCardsOrCardStacks = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
@@ -134,6 +151,7 @@ public class CardInventoryListener implements Listener {
                 .collect(Collectors.groupingBy(ItemStack::getType));
         if (ingredients.size() == 2
             && ingredients.containsKey(Material.AIR)
+            && ingredients.containsKey(Material.BUNDLE)
             && ingredients.get(Material.BUNDLE).size() == 1
             && isCardOrCardStack(ingredients.get(Material.BUNDLE).get(0))) {
             event.getInventory().setResult(getShuffledCopyOf(ingredients.get(Material.BUNDLE).get(0)));
