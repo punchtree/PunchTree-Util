@@ -47,7 +47,7 @@ public class CardToCardListener implements Listener {
     }
 
     private void onInteractWithPlacedCards(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
-        if (player.isSneaking()) {
+        if (player.isSneaking() || player.getInventory().getItem(hand).getType() == Material.AIR) {
             attemptToDrawCardFromCardStack(hand, itemFrame, player, itemInHand);
             return;
         }
