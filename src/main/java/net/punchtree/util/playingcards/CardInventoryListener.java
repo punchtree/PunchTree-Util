@@ -2,6 +2,7 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -75,23 +76,10 @@ public class CardInventoryListener implements Listener {
                     .toList();
 
             if (allCardsOrCardStacks.isEmpty() && isCardStack(cursor)) {
-                event.setCurrentItem(cursor); // This just prevents adding items from taking up the current item slot
-                BundleMeta bundleMeta = (BundleMeta) cursor.getItemMeta();
-                Collection<ItemStack> leftOverCards = event.getWhoClicked().getInventory().addItem(bundleMeta.getItems().toArray(new ItemStack[bundleMeta.getItems().size()])).values();
-                ItemStack leftOverCardsInAStack = PlayingCard.getItemForCardList(leftOverCards.stream().map(PlayingCard::fromItem).collect(Collectors.toList()));
-                event.setCurrentItem(leftOverCardsInAStack);
-                event.setCursor(null);
-                event.setCancelled(true);
-                return;
+                explodeHeldCardStack(event, cursor);
+            } else {
+                collectAllCardsToCursor(event, cursor, allCardsOrCardStacks);
             }
-
-            ItemStack allCardsInOneStack = allCardsOrCardStacks.stream().reduce(cursor, PlayingCardUtils::combineCardStacks, PlayingCardUtils::combineCardStacks);
-            event.setCursor(allCardsInOneStack);
-            event.getWhoClicked().getInventory().forEach(itemStack -> {
-                if (isCardOrCardStack(itemStack)) {
-                    itemStack.setAmount(0);
-                }
-            });
             return;
         }
 
@@ -101,6 +89,7 @@ public class CardInventoryListener implements Listener {
             return;
         }
 
+        // Equivalent of drawing a card only if hand is empty
         if (!isCardOrCardStack(cursor) && isCardOrCardStack(currentItem) && clickType == ClickType.RIGHT && action == InventoryAction.PICKUP_HALF) {
             fixTakingCardsOutOfCardStacks(event, currentItem, false);
             return;
@@ -111,6 +100,11 @@ public class CardInventoryListener implements Listener {
         // Checking for action NOTHING is only necessary for combining identical cards - meaning that if we are using a
         // randomized nbt to make paper nonstackable, it's probably not necessary - still, it's probably harmless
         if (clickType == ClickType.RIGHT && (action == InventoryAction.SWAP_WITH_CURSOR || action == InventoryAction.NOTHING) && isCardOrCardStack(currentItem)) {
+            ItemStack newCardStack = combineCardStacks(cursor, currentItem);
+            event.setCurrentItem(newCardStack);
+            event.setCursor(null);
+            event.setCancelled(true);
+        } else if (clickType == ClickType.SHIFT_RIGHT && isCardOrCardStack(currentItem)) {
             ItemStack newCardStack = combineCardStacks(currentItem, cursor);
             event.setCurrentItem(null);
             event.setCursor(newCardStack);
@@ -118,6 +112,26 @@ public class CardInventoryListener implements Listener {
         } else if (clickType == ClickType.RIGHT && action == InventoryAction.PLACE_ONE && isCardStack(cursor)) {
             fixTakingCardsOutOfCardStacks(event, cursor, true);
         }
+    }
+
+    private static void collectAllCardsToCursor(InventoryClickEvent event, ItemStack cursor, List<ItemStack> allCardsOrCardStacks) {
+        ItemStack allCardsInOneStack = allCardsOrCardStacks.stream().reduce(cursor, PlayingCardUtils::combineCardStacks, PlayingCardUtils::combineCardStacks);
+        event.setCursor(allCardsInOneStack);
+        event.getWhoClicked().getInventory().forEach(itemStack -> {
+            if (isCardOrCardStack(itemStack)) {
+                itemStack.setAmount(0);
+            }
+        });
+    }
+
+    private static void explodeHeldCardStack(InventoryClickEvent event, ItemStack cursor) {
+        event.setCurrentItem(cursor); // This just prevents adding items from taking up the current item slot
+        BundleMeta bundleMeta = (BundleMeta) cursor.getItemMeta();
+        Collection<ItemStack> leftOverCards = event.getWhoClicked().getInventory().addItem(bundleMeta.getItems().toArray(new ItemStack[bundleMeta.getItems().size()])).values();
+        ItemStack leftOverCardsInAStack = PlayingCard.getItemForCardList(leftOverCards.stream().map(PlayingCard::fromItem).collect(Collectors.toList()));
+        event.setCurrentItem(leftOverCardsInAStack);
+        event.setCursor(null);
+        event.setCancelled(true);
     }
 
     private void fixTakingCardsOutOfCardStacks(InventoryClickEvent event, ItemStack cardStack, boolean isCardStackCursor) {

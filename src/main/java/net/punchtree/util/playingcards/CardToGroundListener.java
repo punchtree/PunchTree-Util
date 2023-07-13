@@ -59,9 +59,9 @@ public class CardToGroundListener implements Listener {
             frameBeforeSpawn.setVisible(false);
             frameBeforeSpawn.setRotation(getRotationForYaw(player.getLocation().getYaw()));
 //            frameBeforeSpawn.setFixed(true);
-            if (isFaceUpCardStack(itemInHand) && player.isSneaking()) {
+            if (isCardStack(itemInHand) && player.isSneaking()) {
                 BundleMeta meta = (BundleMeta) itemInHand.getItemMeta();
-                ItemStack itemToBeInFrame = PlayingCard.fromItem(meta.getItems().get(0)).getNewPileItem();
+                ItemStack itemToBeInFrame = meta.getItems().get(0);
                 itemToBeInFrame.editMeta(itemToBeInFrameMeta -> itemToBeInFrameMeta.displayName(null));
                 frameBeforeSpawn.setItem(itemToBeInFrame);
                 if (isLastCardInStack(meta)) {
@@ -71,19 +71,6 @@ public class CardToGroundListener implements Listener {
                 } else {
                     meta.setItems(meta.getItems().subList(1, meta.getItems().size()));
                     updateTopCardOfStack(meta);
-                    itemInHand.setItemMeta(meta);
-                }
-            } else if (isFaceDownCardStack(itemInHand) && player.isSneaking()) {
-                BundleMeta meta = (BundleMeta) itemInHand.getItemMeta();
-                ItemStack itemToBeInFrame = flipCardOrCardStack(PlayingCard.fromItem(meta.getItems().get(0)).getNewPileItem());
-                itemToBeInFrame.editMeta(itemToBeInFrameMeta -> itemToBeInFrameMeta.displayName(null));
-                frameBeforeSpawn.setItem(itemToBeInFrame);
-                if (isLastCardInStack(meta)) {
-                    player.getInventory().setItem(hand, null);
-                } else if (meta.getItems().size() == 2) {
-                    player.getInventory().setItem(hand, flipCardOrCardStack(meta.getItems().get(1)));
-                } else {
-                    meta.setItems(meta.getItems().subList(1, meta.getItems().size()));
                     itemInHand.setItemMeta(meta);
                 }
             } else if (isFaceDownCard(itemInHand)) {

@@ -90,7 +90,6 @@ public class CardBreakListener implements Listener {
         } else if (isFaceDownCard(cardOrCardStack)) {
             // need to reset the title because it may be modified by the card count indicator
             cardOrCardStack.editMeta(meta -> meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME));
-            cardToDrop = flipCardOrCardStack(cardOrCardStack);
         } else return;
 
         if (player != null) {
