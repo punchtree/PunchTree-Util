@@ -3,7 +3,13 @@ package net.punchtree.util.playingcards;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.Bukkit;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
@@ -30,19 +36,51 @@ public class CardInventoryListener implements Listener {
     @EventHandler
     public void onFlipCard(PlayerSwapHandItemsEvent event) {
         ItemStack mainHandItem = event.getMainHandItem();
+        ItemStack offHandItem = event.getOffHandItem();
+        Player player = event.getPlayer();
+        if (player.isSneaking() || (!isCardOrCardStack(mainHandItem) && !isCardOrCardStack(offHandItem))) {
+
+            // This is maybe a questionable use of tick performance - has to search in world for entity being looked at
+            boolean flippedACard = attemptToFlipCardInWorld(event);
+
+            if (flippedACard) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
         if (isCardOrCardStack(mainHandItem)) {
             event.setCancelled(true);
             ItemStack flippedCard = flipCardOrCardStack(mainHandItem);
-            event.getPlayer().getInventory().setItemInOffHand(flippedCard);
-            event.getPlayer().playSound(CARD_FLIP_SOUND);
+            player.getInventory().setItemInOffHand(flippedCard);
+            player.playSound(CARD_FLIP_SOUND);
         }
-        ItemStack offHandItem = event.getOffHandItem();
         if (isCardOrCardStack(offHandItem)) {
             event.setCancelled(true);
             ItemStack flippedCard = flipCardOrCardStack(offHandItem);
-            event.getPlayer().getInventory().setItemInMainHand(flippedCard);
-            event.getPlayer().playSound(CARD_FLIP_SOUND);
+            player.getInventory().setItemInMainHand(flippedCard);
+            player.playSound(CARD_FLIP_SOUND);
         }
+    }
+
+    private boolean attemptToFlipCardInWorld(PlayerSwapHandItemsEvent event) {
+        final int REACH = 5;
+        Block clickedBlock = event.getPlayer().getTargetBlockExact(REACH, FluidCollisionMode.NEVER);
+        if (clickedBlock == null) return false;
+        BlockFace clickedFace = event.getPlayer().getTargetBlockFace(REACH, FluidCollisionMode.NEVER);
+        Optional<ItemFrame> first = clickedBlock.getLocation().getNearbyEntities(2, 2, 2).stream()
+                .filter(entity -> entity instanceof ItemFrame)
+                .map(entity -> (ItemFrame) entity)
+                .filter(itemFrame -> {
+                    Location location = itemFrame.getLocation();
+                    Block newFrameBlock = clickedBlock.getRelative(clickedFace);
+                    return location.getBlockX() == newFrameBlock.getX()
+                            && location.getBlockY() == newFrameBlock.getY()
+                            && location.getBlockZ() == newFrameBlock.getZ()
+                            && isCardOrCardStack(itemFrame.getItem());
+                }).findFirst();
+        first.ifPresent(CardBreakListener::flipCardOnGround);
+        return first.isPresent();
     }
 
     @EventHandler
@@ -59,6 +97,7 @@ public class CardInventoryListener implements Listener {
 //        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardOrCardStack(currentItem) ? "Card" : "Not a card"));
 //        Bukkit.broadcastMessage(event.getSlotType().name() + " " + event.getSlot());
 
+        // If clicking on output of a crafting grid
         if (event.getSlotType() == SlotType.RESULT && isCardStack(currentItem)) {
             if (clickType == ClickType.RIGHT) {
                 event.setCancelled(true);
@@ -69,7 +108,7 @@ public class CardInventoryListener implements Listener {
             return;
         }
 
-
+        // If double-clicking
         if (clickType == ClickType.DOUBLE_CLICK && isCardOrCardStack(cursor)) {
             List<ItemStack> allCardsOrCardStacks = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
                     .filter(PlayingCardUtils::isCardOrCardStack)
@@ -83,19 +122,43 @@ public class CardInventoryListener implements Listener {
             return;
         }
 
+        // If flipping over a card
         if (clickType == ClickType.SWAP_OFFHAND && action == InventoryAction.HOTBAR_SWAP) {
             event.setCurrentItem(flipCardOrCardStack(currentItem));
             event.setCancelled(true);
             return;
         }
 
-        // Equivalent of drawing a card only if hand is empty
-        if (!isCardOrCardStack(cursor) && isCardOrCardStack(currentItem) && clickType == ClickType.RIGHT && action == InventoryAction.PICKUP_HALF) {
+        // Equivalent of drawing a card only if hand is empty (right-clicking with nothing in cursor)
+        if (!isCardOrCardStack(cursor) && isCardOrCardStack(currentItem)
+                && clickType == ClickType.RIGHT && action == InventoryAction.PICKUP_HALF) {
             fixTakingCardsOutOfCardStacks(event, currentItem, false);
             return;
         }
 
         if (!isCardOrCardStack(cursor)) return;
+
+        // Dropping single cards out of a stack
+        if (action == InventoryAction.DROP_ONE_SLOT && isCardOrCardStack(currentItem)) {
+            if (isSingleCard(cursor)) {
+                event.setCurrentItem(combineCardStacks(cursor, currentItem));
+                event.setCursor(null);
+                event.setCancelled(true);
+                return;
+            }
+            BundleMeta cursorMeta = (BundleMeta) cursor.getItemMeta();
+            ItemStack topCard = cursorMeta.getItems().get(0);
+            event.setCurrentItem(combineCardStacks(topCard, currentItem));
+            if (cursorMeta.getItems().size() == 2) {
+                event.setCursor(cursorMeta.getItems().get(1));
+            } else {
+                cursorMeta.setItems(cursorMeta.getItems().subList(1, cursorMeta.getItems().size()));
+                updateTopCardOfStack(cursorMeta);
+                cursor.setItemMeta(cursorMeta);
+            }
+
+            event.setCancelled(true);
+        }
 
         // Checking for action NOTHING is only necessary for combining identical cards - meaning that if we are using a
         // randomized nbt to make paper nonstackable, it's probably not necessary - still, it's probably harmless

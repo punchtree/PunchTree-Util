@@ -101,7 +101,7 @@ public class CardBreakListener implements Listener {
         itemFrame.remove();
     }
 
-    private void flipCardOnGround(ItemFrame itemFrame) {
+    static void flipCardOnGround(ItemFrame itemFrame) {
         ItemStack flippedCard = flipCardOrCardStack(itemFrame.getItem());
         flippedCard.editMeta(meta -> meta.displayName(null));
         itemFrame.setItem(flippedCard);

@@ -114,7 +114,7 @@ public class CardToGroundListener implements Listener {
         else return Rotation.COUNTER_CLOCKWISE;
     }
 
-    private boolean blockFaceHasItemFrame(Block clickedBlock, BlockFace clickedFace) {
+    static boolean blockFaceHasItemFrame(Block clickedBlock, BlockFace clickedFace) {
         return clickedBlock.getLocation().getNearbyEntities(2, 2, 2).stream()
 //                .peek(entity -> {
 //                    Bukkit.getPlayer("Cxom").sendMessage("====================================");

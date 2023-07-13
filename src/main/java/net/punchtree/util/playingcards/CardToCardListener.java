@@ -2,6 +2,7 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.text.Component;
 import net.punchtree.util.PunchTreeUtilPlugin;
+import net.punchtree.util.debugvar.DebugVars;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -46,13 +47,19 @@ public class CardToCardListener implements Listener {
         }
     }
 
+    // DebugVars.getBoolean("punchtree:right-click-draw-with-empty-hand", true)
+
     private void onInteractWithPlacedCards(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
-        if (player.isSneaking() || player.getInventory().getItem(hand).getType() == Material.AIR) {
+        if (isPlayerPlacingCard(hand, player)) {
             attemptToDrawCardFromCardStack(hand, itemFrame, player, itemInHand);
             return;
         }
 
         attemptToPlaceCardOnCardStack(hand, itemFrame, player, itemInHand);
+    }
+
+    private static boolean isPlayerPlacingCard(EquipmentSlot hand, Player player) {
+        return player.isSneaking() || player.getInventory().getItem(hand).getType() == Material.AIR;
     }
 
     private void attemptToDrawCardFromCardStack(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
