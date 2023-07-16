@@ -11,8 +11,8 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 
 import static net.punchtree.util.playingcards.PlayingCardUtils.*;
@@ -28,7 +28,7 @@ public class CardBreakListener implements Listener {
 
         event.setCancelled(true);
 
-        onBreakCards(itemFrame, itemFrame.getItem(), player);
+        onLeftClickCardlike(itemFrame, player);
     }
 
     @EventHandler
@@ -37,29 +37,68 @@ public class CardBreakListener implements Listener {
         if (!(isCardOrCardStack(itemFrame.getItem()))) return;
 
         event.setCancelled(true);
-        ItemStack cardOrCardStack = itemFrame.getItem();
 
-        Player player = null;
-        if (event instanceof HangingBreakByEntityEvent entityEvent
-                && entityEvent.getRemover() instanceof Player) {
-            player = (Player) entityEvent.getRemover();
+        if (event instanceof HangingBreakByEntityEvent entityEvent && entityEvent.getRemover() instanceof Player player) {
+            onLeftClickCardlike(itemFrame, player);
+        } else {
+            onNonplayerBreakCardlike(itemFrame);
         }
-
-        onBreakCards(itemFrame, cardOrCardStack, player);
     }
 
-    /**
-     *
-     * @param itemFrame
-     * @param cardOrCardStack
-     * @param player null if broken by non-player
-     */
-    private void onBreakCards(ItemFrame itemFrame, ItemStack cardOrCardStack, @Nullable Player player) {
-        if (player != null && player.isSneaking()) {
-            flipCardOnGround(itemFrame);
+    private void onLeftClickCardlike(ItemFrame itemFrame, @NonNull Player player) {
+        if (player.isSneaking()) {
+            onShiftLeftClickCardlike(itemFrame, player);
             return;
         }
 
+        // TODO left click should always place only one card, even from a cardstack onto an existing cardlike
+        placeOneCardFromHandOntoCardlike(itemFrame, player);
+    }
+
+    private void placeOneCardFromHandOntoCardlike(ItemFrame itemFrame, Player player) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        if (isCardOrCardStack(itemInHand)) {
+            if (isSingleCard(itemInHand)) {
+                itemFrame.setItem(combineCardStacks(itemInHand, itemFrame.getItem()));
+                player.getInventory().setItemInMainHand(null);
+            } else {
+                // This code kind of duplicates dropping cards in the inventory - refactoring opportunity?
+                BundleMeta handMeta = (BundleMeta) itemInHand.getItemMeta();
+                ItemStack topCard = handMeta.getItems().get(0);
+                itemFrame.setItem(combineCardStacks(topCard, itemFrame.getItem()));
+                if (handMeta.getItems().size() == 2) {
+                    player.getInventory().setItemInMainHand(handMeta.getItems().get(1));
+                } else {
+                    handMeta.setItems(handMeta.getItems().subList(1, handMeta.getItems().size()));
+                    updateTopCardOfStack(handMeta);
+                    itemInHand.setItemMeta(handMeta);
+                }
+            }
+        }
+        // show the card count both if the player placed a card and if they didn't
+        CardToCardListener.showCardCount(itemFrame);
+    }
+
+    private static void onShiftLeftClickCardlike(ItemFrame itemFrame, Player player) {
+        CardToCardListener.attemptToPlaceCardlikeOnCardlike(itemFrame, player);
+    }
+
+    static void onNonplayerBreakCardlike(ItemFrame itemFrame) {
+        Bukkit.broadcastMessage("Cards broken by something other than a player!");
+        ItemStack cardlikeToDrop = getBrokenCardItem(itemFrame.getItem());
+        itemFrame.getWorld().dropItem(itemFrame.getLocation(), cardlikeToDrop);
+        itemFrame.getWorld().playSound(itemFrame.getLocation(), Sound.ENTITY_ITEM_FRAME_REMOVE_ITEM, 1, 1);
+        itemFrame.remove();
+    }
+
+    static void onPlayerPickupCardlike(ItemFrame itemFrame, Player player) {
+        ItemStack cardlikeToDrop = getBrokenCardItem(itemFrame.getItem());
+        addItemToInventoryOrDrop(player, itemFrame, cardlikeToDrop);
+        itemFrame.getWorld().playSound(itemFrame.getLocation(), Sound.ENTITY_ITEM_FRAME_REMOVE_ITEM, 1, 1);
+        itemFrame.remove();
+    }
+
+    private static ItemStack getBrokenCardItem(ItemStack cardOrCardStack) {
         ItemStack cardToDrop = cardOrCardStack;
         if (isFaceDownCardStack(cardOrCardStack)) {
             BundleMeta bundleMeta = (BundleMeta) cardOrCardStack.getItemMeta();
@@ -90,15 +129,10 @@ public class CardBreakListener implements Listener {
         } else if (isFaceDownCard(cardOrCardStack)) {
             // need to reset the title because it may be modified by the card count indicator
             cardOrCardStack.editMeta(meta -> meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME));
-        } else return;
-
-        if (player != null) {
-            addItemToInventoryOrDrop(player, itemFrame, cardToDrop);
         } else {
-            itemFrame.getWorld().dropItem(itemFrame.getLocation(), cardToDrop);
+            throw new IllegalArgumentException("ItemStack supposed to be a broken cardlike is not a card or card stack");
         }
-        itemFrame.getWorld().playSound(itemFrame.getLocation(), Sound.ENTITY_ITEM_FRAME_REMOVE_ITEM, 1, 1);
-        itemFrame.remove();
+        return cardToDrop;
     }
 
     static void flipCardOnGround(ItemFrame itemFrame) {
@@ -107,7 +141,7 @@ public class CardBreakListener implements Listener {
         itemFrame.setItem(flippedCard);
     }
 
-    private void addItemToInventoryOrDrop(Player player, ItemFrame itemFrame, ItemStack cardToDrop) {
+    private static void addItemToInventoryOrDrop(Player player, ItemFrame itemFrame, ItemStack cardToDrop) {
         HashMap<Integer, ItemStack> overflowItems = player.getInventory().addItem(cardToDrop);
         if (!overflowItems.isEmpty()) {
             itemFrame.getWorld().dropItem(itemFrame.getLocation(), cardToDrop);

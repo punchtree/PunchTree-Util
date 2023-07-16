@@ -33,21 +33,38 @@ public class CardToGroundListener implements Listener {
         // Cancel all events while holding cards or decks, even if they don't cause a card related action
         event.setCancelled(true);
 
-        if ( event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock();
         BlockFace clickedFace = event.getBlockFace();
         EquipmentSlot hand = event.getHand();
 
-//        if (player.isSneaking()) {
+        if ( event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            onLeftClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
+        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            onRightClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
+        }
+    }
+
+    private void onRightClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
+        if (player.isSneaking()) {
+            onShiftRightClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
+            return;
+        }
+    }
+
+    private void onShiftRightClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
+    }
+
+    private void onLeftClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
+        if (player.isSneaking()) {
+            onShiftLeftClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
+            return;
+        }
         tryPlacingCardOrCardStack(hand, itemInHand, player, clickedBlock, clickedFace);
-//        } else {
-//            drawCard();
-//            if (isHoldingDeck(player, hand)) {
-//                addCardToHeldDeck();
-//            }
-//        }
+    }
+
+    private void onShiftLeftClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
+        tryPlacingCardOrCardStack(hand, itemInHand, player, clickedBlock, clickedFace);
     }
 
     private void tryPlacingCardOrCardStack(EquipmentSlot hand, ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace) {
@@ -59,7 +76,7 @@ public class CardToGroundListener implements Listener {
             frameBeforeSpawn.setVisible(false);
             frameBeforeSpawn.setRotation(getRotationForYaw(player.getLocation().getYaw()));
 //            frameBeforeSpawn.setFixed(true);
-            if (isCardStack(itemInHand) && player.isSneaking()) {
+            if (isCardStack(itemInHand) && !player.isSneaking()) {
                 BundleMeta meta = (BundleMeta) itemInHand.getItemMeta();
                 ItemStack itemToBeInFrame = meta.getItems().get(0);
                 itemToBeInFrame.editMeta(itemToBeInFrameMeta -> itemToBeInFrameMeta.displayName(null));

@@ -110,15 +110,7 @@ public class CardInventoryListener implements Listener {
 
         // If double-clicking
         if (clickType == ClickType.DOUBLE_CLICK && isCardOrCardStack(cursor)) {
-            List<ItemStack> allCardsOrCardStacks = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
-                    .filter(PlayingCardUtils::isCardOrCardStack)
-                    .toList();
-
-            if (allCardsOrCardStacks.isEmpty() && isCardStack(cursor)) {
-                explodeHeldCardStack(event, cursor);
-            } else {
-                collectAllCardsToCursor(event, cursor, allCardsOrCardStacks);
-            }
+            onDoubleClickWhileHoldingCardlike(event, cursor);
             return;
         }
 
@@ -132,6 +124,7 @@ public class CardInventoryListener implements Listener {
         // Equivalent of drawing a card only if hand is empty (right-clicking with nothing in cursor)
         if (!isCardOrCardStack(cursor) && isCardOrCardStack(currentItem)
                 && clickType == ClickType.RIGHT && action == InventoryAction.PICKUP_HALF) {
+            // FIXME this can be called with a single-card current item, but this method casts the meta as a bundle! ERROR!
             fixTakingCardsOutOfCardStacks(event, currentItem, false);
             return;
         }
@@ -174,6 +167,18 @@ public class CardInventoryListener implements Listener {
             event.setCancelled(true);
         } else if (clickType == ClickType.RIGHT && action == InventoryAction.PLACE_ONE && isCardStack(cursor)) {
             fixTakingCardsOutOfCardStacks(event, cursor, true);
+        }
+    }
+
+    private static void onDoubleClickWhileHoldingCardlike(InventoryClickEvent event, ItemStack cursor) {
+        List<ItemStack> allCardsOrCardStacks = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
+                .filter(PlayingCardUtils::isCardOrCardStack)
+                .toList();
+
+        if (allCardsOrCardStacks.isEmpty() && isCardStack(cursor)) {
+            explodeHeldCardStack(event, cursor);
+        } else {
+            collectAllCardsToCursor(event, cursor, allCardsOrCardStacks);
         }
     }
 

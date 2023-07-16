@@ -2,7 +2,6 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.text.Component;
 import net.punchtree.util.PunchTreeUtilPlugin;
-import net.punchtree.util.debugvar.DebugVars;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -43,26 +42,26 @@ public class CardToCardListener implements Listener {
 
         if (isCardOrCardStack(itemInFrame)) {
             event.setCancelled(true);
-            onInteractWithPlacedCards(hand, itemFrame, player, itemInHand);
+            onRightClickCardlike(hand, itemFrame, player, itemInHand);
         }
     }
 
     // DebugVars.getBoolean("punchtree:right-click-draw-with-empty-hand", true)
 
-    private void onInteractWithPlacedCards(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
-        if (isPlayerPlacingCard(hand, player)) {
-            attemptToDrawCardFromCardStack(hand, itemFrame, player, itemInHand);
+    private void onRightClickCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
+        if (player.isSneaking()) {
+            onShiftRightClickCardlike(hand, itemFrame, player, itemInHand);
             return;
         }
 
-        attemptToPlaceCardOnCardStack(hand, itemFrame, player, itemInHand);
+        attemptToDrawCardFromCardlike(hand, itemFrame, player, itemInHand);
     }
 
-    private static boolean isPlayerPlacingCard(EquipmentSlot hand, Player player) {
-        return player.isSneaking() || player.getInventory().getItem(hand).getType() == Material.AIR;
+    private void onShiftRightClickCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
+        CardBreakListener.onPlayerPickupCardlike(itemFrame, player);
     }
 
-    private void attemptToDrawCardFromCardStack(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
+    private void attemptToDrawCardFromCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
         // If player's hand is empty, draw a card
         if (itemInHand.getType() == Material.AIR) {
             player.getInventory().setItem(hand, drawCard(itemFrame).getNewItem());
@@ -79,16 +78,18 @@ public class CardToCardListener implements Listener {
         }
     }
 
-    private void attemptToPlaceCardOnCardStack(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
+    static void attemptToPlaceCardlikeOnCardlike(ItemFrame itemFrame, Player player) {
+        // TODO The method name implies already knowing the first condition to be true - this should be renamed or refactored
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
         if (isCardOrCardStack(itemInHand)) {
             addCardOrCardStackToFrame(itemFrame, itemInHand);
-            player.getInventory().setItem(hand, null);
+            player.getInventory().setItemInMainHand(null);
         } else {
             showCardCount(itemFrame);
         }
     }
 
-    private void addCardOrCardStackToFrame(ItemFrame itemFrame, ItemStack cardOrCardStackToAdd) {
+    private static void addCardOrCardStackToFrame(ItemFrame itemFrame, ItemStack cardOrCardStackToAdd) {
         ItemStack combinedStack = combineCardStacks(cardOrCardStackToAdd, itemFrame.getItem());
         itemFrame.setItem(combinedStack);
         showCardCount(itemFrame);
@@ -138,7 +139,7 @@ public class CardToCardListener implements Listener {
         return PlayingCard.fromItem(drawnCard);
     }
 
-    private void showCardCount(ItemFrame frame) {
+    static void showCardCount(ItemFrame frame) {
         ItemStack item = frame.getItem();
 
         if (isSingleCard(item)) {
