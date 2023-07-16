@@ -27,7 +27,7 @@ public class CardToGroundListener implements Listener {
         // On right click on block with a playing card in hand
         // if there's not an item frame there, create one and place a new card stack with the card in it
         ItemStack itemInHand = event.getItem();
-        if (!isCardOrCardStack(itemInHand)) return;
+        if (!isCardlike(itemInHand)) return;
         if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
 
         // Cancel all events while holding cards or decks, even if they don't cause a card related action
@@ -60,14 +60,14 @@ public class CardToGroundListener implements Listener {
             onShiftLeftClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
             return;
         }
-        tryPlacingCardOrCardStack(hand, itemInHand, player, clickedBlock, clickedFace);
+        tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
     }
 
     private void onShiftLeftClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
-        tryPlacingCardOrCardStack(hand, itemInHand, player, clickedBlock, clickedFace);
+        tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
     }
 
-    private void tryPlacingCardOrCardStack(EquipmentSlot hand, ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace) {
+    private void tryPlacingCardlike(EquipmentSlot hand, ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace) {
         if (!canBlockFaceHaveCardPlacedOnIt(clickedBlock, clickedFace)) return;
 
 
@@ -95,7 +95,7 @@ public class CardToGroundListener implements Listener {
 //                itemToBeInFrame.editMeta(meta -> {
 //                    BundleMeta bundleMeta = (BundleMeta) meta;
 //                    meta.displayName(null);
-//                    bundleMeta.addItem(flipCardOrCardStack(itemInHand));
+//                    bundleMeta.addItem(flipCardlike(itemInHand));
 //                });
 
                 // This implementation would be for if a single card is represented using a different item than a card stack

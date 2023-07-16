@@ -40,7 +40,7 @@ public class CardToCardListener implements Listener {
         EquipmentSlot hand = event.getHand();
         ItemStack itemInHand = player.getInventory().getItem(hand);
 
-        if (isCardOrCardStack(itemInFrame)) {
+        if (isCardlike(itemInFrame)) {
             event.setCancelled(true);
             onRightClickCardlike(hand, itemFrame, player, itemInHand);
         }
@@ -81,16 +81,16 @@ public class CardToCardListener implements Listener {
     static void attemptToPlaceCardlikeOnCardlike(ItemFrame itemFrame, Player player) {
         // TODO The method name implies already knowing the first condition to be true - this should be renamed or refactored
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        if (isCardOrCardStack(itemInHand)) {
-            addCardOrCardStackToFrame(itemFrame, itemInHand);
+        if (isCardlike(itemInHand)) {
+            addCardlikeToFrame(itemFrame, itemInHand);
             player.getInventory().setItemInMainHand(null);
         } else {
             showCardCount(itemFrame);
         }
     }
 
-    private static void addCardOrCardStackToFrame(ItemFrame itemFrame, ItemStack cardOrCardStackToAdd) {
-        ItemStack combinedStack = combineCardStacks(cardOrCardStackToAdd, itemFrame.getItem());
+    private static void addCardlikeToFrame(ItemFrame itemFrame, ItemStack cardlikeToAdd) {
+        ItemStack combinedStack = combineCardStacks(cardlikeToAdd, itemFrame.getItem());
         itemFrame.setItem(combinedStack);
         showCardCount(itemFrame);
     }
@@ -117,7 +117,7 @@ public class CardToCardListener implements Listener {
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
         if (isFaceDownCard(drawnCard)) {
-            drawnCard = flipCardOrCardStack(drawnCard);
+            drawnCard = flipCardlike(drawnCard);
         }
 
         if (isLastCardInStack(bundleMeta)) {

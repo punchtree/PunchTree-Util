@@ -23,16 +23,16 @@ public class PlayingCardUtils {
     private static final int PLAYING_CARD_STACK_MIN_CUSTOM_MODEL_DATA = 1001;
     private static final int PLAYING_CARD_STACK_MAX_CUSTOM_MODEL_DATA = 1052;
 
-    static boolean isCardOrCardStack(ItemStack item) {
+    static boolean isCardlike(ItemStack item) {
         return isFaceUpCard(item) || isFaceUpCardStack(item) || isFaceDownCard(item) || isFaceDownCardStack(item);
     }
 
-    static boolean isSingleCard(ItemStack cardOrCardStackToAdd) {
-        return isFaceUpCard(cardOrCardStackToAdd) || isFaceDownCard(cardOrCardStackToAdd);
+    static boolean isSingleCard(ItemStack cardlikeToAdd) {
+        return isFaceUpCard(cardlikeToAdd) || isFaceDownCard(cardlikeToAdd);
     }
 
-    static boolean isCardStack(ItemStack cardOrCardStackToAdd) {
-        return isFaceUpCardStack(cardOrCardStackToAdd) || isFaceDownCardStack(cardOrCardStackToAdd);
+    static boolean isCardStack(ItemStack cardlikeToAdd) {
+        return isFaceUpCardStack(cardlikeToAdd) || isFaceDownCardStack(cardlikeToAdd);
     }
 
     static boolean isFaceUpCardStack(ItemStack item) {
@@ -82,7 +82,7 @@ public class PlayingCardUtils {
         return bundleMeta.getItems().size() == 1;
     }
 
-    static ItemStack flipCardOrCardStack(ItemStack item) {
+    static ItemStack flipCardlike(ItemStack item) {
         if (isFaceDownCard(item)) {
             return flipFaceDownCard(item);
         } else if (isFaceDownCardStack(item)) {
@@ -145,7 +145,7 @@ public class PlayingCardUtils {
         if (isSingleCard(combinedStack)) {
             combinedStack = PlayingCard.fromItem(combinedStack).getNewPileItem();
             // Result of newPileItem will always be face up, so flip it back the way it was
-            combinedStack = isFaceUpCard(bottomCards) ? combinedStack : flipCardOrCardStack(combinedStack);
+            combinedStack = isFaceUpCard(bottomCards) ? combinedStack : flipCardlike(combinedStack);
         }
 
         BundleMeta combinedStackMeta = (BundleMeta) combinedStack.getItemMeta();
@@ -153,9 +153,9 @@ public class PlayingCardUtils {
 
         ItemStack faceUpTopCards =
                 isFaceUpCard(topCards) || isFaceUpCardStack(topCards) ? topCards :
-                flipCardOrCardStack(topCards);
+                flipCardlike(topCards);
 
-        ItemStack facedCorrectlyTopCards = isFaceUpCardStack(combinedStack) ?  faceUpTopCards : flipCardOrCardStack(faceUpTopCards);
+        ItemStack facedCorrectlyTopCards = isFaceUpCardStack(combinedStack) ?  faceUpTopCards : flipCardlike(faceUpTopCards);
 
         Stream<ItemStack> topCardsStream = isSingleCard(facedCorrectlyTopCards) ? Stream.of(facedCorrectlyTopCards) : ((BundleMeta) facedCorrectlyTopCards.getItemMeta()).getItems().stream();
         List<ItemStack> combinedCardsList = Stream.concat(topCardsStream, bottomCardsStream).toList();

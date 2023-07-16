@@ -24,7 +24,7 @@ public class CardBreakListener implements Listener {
     public void beforeHangBreak(EntityDamageByEntityEvent event) {
         if ( !(event.getEntity() instanceof ItemFrame itemFrame)) return;
         if ( !(event.getDamager() instanceof Player player)) return;
-        if ( !isCardOrCardStack(itemFrame.getItem())) return;
+        if ( !isCardlike(itemFrame.getItem())) return;
 
         event.setCancelled(true);
 
@@ -34,7 +34,7 @@ public class CardBreakListener implements Listener {
     @EventHandler
     public void onHangBreak(HangingBreakEvent event) {
         if (!(event.getEntity() instanceof ItemFrame itemFrame)) return;
-        if (!(isCardOrCardStack(itemFrame.getItem()))) return;
+        if (!(isCardlike(itemFrame.getItem()))) return;
 
         event.setCancelled(true);
 
@@ -57,7 +57,7 @@ public class CardBreakListener implements Listener {
 
     private void placeOneCardFromHandOntoCardlike(ItemFrame itemFrame, Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        if (isCardOrCardStack(itemInHand)) {
+        if (isCardlike(itemInHand)) {
             if (isSingleCard(itemInHand)) {
                 itemFrame.setItem(combineCardStacks(itemInHand, itemFrame.getItem()));
                 player.getInventory().setItemInMainHand(null);
@@ -98,22 +98,22 @@ public class CardBreakListener implements Listener {
         itemFrame.remove();
     }
 
-    private static ItemStack getBrokenCardItem(ItemStack cardOrCardStack) {
-        ItemStack cardToDrop = cardOrCardStack;
-        if (isFaceDownCardStack(cardOrCardStack)) {
-            BundleMeta bundleMeta = (BundleMeta) cardOrCardStack.getItemMeta();
+    private static ItemStack getBrokenCardItem(ItemStack cardlike) {
+        ItemStack cardToDrop = cardlike;
+        if (isFaceDownCardStack(cardlike)) {
+            BundleMeta bundleMeta = (BundleMeta) cardlike.getItemMeta();
             // make this a face down card
             if (isLastCardInStack(bundleMeta)) {
                 // this is legacy behavior
                 Bukkit.broadcastMessage("Breaking a single face down card THAT'S A BUNDLE");
-                cardToDrop = flipCardOrCardStack(bundleMeta.getItems().get(0));
+                cardToDrop = flipCardlike(bundleMeta.getItems().get(0));
             } else {
                 // face down card stack > 1
                 bundleMeta.displayName(PlayingCard.FACE_DOWN_CARD_PILE_NAME);
             }
-            cardOrCardStack.setItemMeta(bundleMeta);
-        } else if (isFaceUpCardStack(cardOrCardStack)) {
-            BundleMeta bundleMeta = (BundleMeta) cardOrCardStack.getItemMeta();
+            cardlike.setItemMeta(bundleMeta);
+        } else if (isFaceUpCardStack(cardlike)) {
+            BundleMeta bundleMeta = (BundleMeta) cardlike.getItemMeta();
             if (isLastCardInStack(bundleMeta)) {
                 // this is legacy behavior
                 Bukkit.broadcastMessage("Breaking a single face up card THAT'S A BUNDLE");
@@ -122,13 +122,13 @@ public class CardBreakListener implements Listener {
                 // face up card stack > 1
                 bundleMeta.displayName(PlayingCard.fromItem(bundleMeta.getItems().get(0)).getName());
             }
-            cardOrCardStack.setItemMeta(bundleMeta);
-        } else if (isFaceUpCard(cardOrCardStack)){
+            cardlike.setItemMeta(bundleMeta);
+        } else if (isFaceUpCard(cardlike)){
             // need to reset the title because it may be modified by the card count indicator
-            cardOrCardStack.editMeta(meta -> meta.displayName(PlayingCard.fromItem(cardOrCardStack).getName()));
-        } else if (isFaceDownCard(cardOrCardStack)) {
+            cardlike.editMeta(meta -> meta.displayName(PlayingCard.fromItem(cardlike).getName()));
+        } else if (isFaceDownCard(cardlike)) {
             // need to reset the title because it may be modified by the card count indicator
-            cardOrCardStack.editMeta(meta -> meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME));
+            cardlike.editMeta(meta -> meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME));
         } else {
             throw new IllegalArgumentException("ItemStack supposed to be a broken cardlike is not a card or card stack");
         }
@@ -136,7 +136,7 @@ public class CardBreakListener implements Listener {
     }
 
     static void flipCardOnGround(ItemFrame itemFrame) {
-        ItemStack flippedCard = flipCardOrCardStack(itemFrame.getItem());
+        ItemStack flippedCard = flipCardlike(itemFrame.getItem());
         flippedCard.editMeta(meta -> meta.displayName(null));
         itemFrame.setItem(flippedCard);
     }

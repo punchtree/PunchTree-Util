@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static net.punchtree.util.playingcards.PlayingCardUtils.flipCardOrCardStack;
+import static net.punchtree.util.playingcards.PlayingCardUtils.flipCardlike;
 import static net.punchtree.util.playingcards.PlayingCardUtils.isFaceDownCard;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -30,7 +30,7 @@ public record PlayingCard(Suit suit, Rank rank) {
     public static final TextComponent FACE_DOWN_CARD_PILE_NAME = Component.text("Playing Card Stack").decoration(TextDecoration.ITALIC, false);
 
     public static PlayingCard fromItem(ItemStack drawnCard) {
-        if (isFaceDownCard(drawnCard)) return fromItem(flipCardOrCardStack(drawnCard));
+        if (isFaceDownCard(drawnCard)) return fromItem(flipCardlike(drawnCard));
         int customModelData = drawnCard.getItemMeta().getCustomModelData();
         int suitNumber = (customModelData - 1001) / 13;
         int rankNumber = (customModelData - 1001) % 13;
