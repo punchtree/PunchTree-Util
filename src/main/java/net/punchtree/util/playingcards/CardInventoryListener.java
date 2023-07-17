@@ -2,18 +2,21 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
-import org.bukkit.Bukkit;
-import org.bukkit.FluidCollisionMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
@@ -128,41 +131,14 @@ public class CardInventoryListener implements Listener {
 
         if (clickType == ClickType.SHIFT_RIGHT) {
             onShiftRightClickInInventory(event, cursor, currentItem);
-            return;
-        }
-
-        if (clickType == ClickType.LEFT) {
+        } else if (clickType == ClickType.LEFT) {
             onLeftClickInInventory(event, cursor, currentItem);
-            return;
-        }
-
-        if (clickType == ClickType.SHIFT_LEFT) {
+        } else if (clickType == ClickType.SHIFT_LEFT) {
             onShiftLeftClickInInventory(event, cursor, currentItem);
-            return;
-        }
-
-        if (action == InventoryAction.DROP_ONE_SLOT && isCardlike(currentItem)) {
+        } else if (action == InventoryAction.DROP_ONE_SLOT) {
             placeOneCard(event, cursor, currentItem);
-            return;
-        }
-
-        if (action == InventoryAction.DROP_ALL_SLOT && isCardlike(currentItem)) {
+        } else if (action == InventoryAction.DROP_ALL_SLOT) {
             placeAllCards(event, cursor, currentItem);
-            return;
-        }
-
-        // Checking for action NOTHING is only necessary for combining identical cards - meaning that if we are using a
-        // randomized nbt to make paper nonstackable, it's probably not necessary - still, it's probably harmless
-        if (clickType == ClickType.RIGHT && (action == InventoryAction.SWAP_WITH_CURSOR || action == InventoryAction.NOTHING) && isCardlike(currentItem)) {
-            ItemStack newCardStack = combineCardStacks(cursor, currentItem);
-            event.setCurrentItem(newCardStack);
-            event.setCursor(null);
-            event.setCancelled(true);
-        } else if (clickType == ClickType.SHIFT_RIGHT && isCardlike(currentItem)) {
-            ItemStack newCardStack = combineCardStacks(currentItem, cursor);
-            event.setCurrentItem(null);
-            event.setCursor(newCardStack);
-            event.setCancelled(true);
         }
     }
 
@@ -218,7 +194,6 @@ public class CardInventoryListener implements Listener {
         }
 
         // Current item is empty or a cardlike and cursor is a stack
-        Bukkit.broadcastMessage("Current item is empty and cursor is a stack");
         BundleMeta cursorMeta = (BundleMeta) cursor.getItemMeta();
         ItemStack topCard = cursorMeta.getItems().get(0);
         if (event.getCurrentItem().getType() == Material.AIR) {
@@ -394,6 +369,22 @@ public class CardInventoryListener implements Listener {
         if (isCardlike(event.getOldCursor())) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onRightClickWithBundleInCreative(PlayerInteractEvent event) {
+        if (event.getPlayer().getGameMode() != GameMode.CREATIVE) return;
+        if ( ! (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
+        if (!isCardlike(event.getItem())) return;
+        Component warning = Component.text("You're in creative mode, you should be in ")
+                            .append(Component.text("survival").decorate(TextDecoration.BOLD)
+                                    .hoverEvent(Component.text("Click to be put in survival mode").color(NamedTextColor.RED).asHoverEvent())
+                                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/gamemode survival")))
+                            .append(Component.text(" for cards to work properly!"))
+                            .color(NamedTextColor.RED);
+        event.getPlayer().sendMessage(warning);
+        event.getPlayer().playSound(CARD_INTERACTION_FAILURE_SOUND);
+        event.setCancelled(true);
     }
 
     // TODO try PlayerInventorySlotChangeEvent for creative picking?
