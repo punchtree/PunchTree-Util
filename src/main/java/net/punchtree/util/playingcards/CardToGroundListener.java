@@ -74,7 +74,7 @@ public class CardToGroundListener implements Listener {
         ItemFrame frame = clickedBlock.getWorld().spawn(clickedBlock.getRelative(clickedFace).getLocation(), ItemFrame.class, frameBeforeSpawn -> {
             frameBeforeSpawn.setFacingDirection(clickedFace, true);
             frameBeforeSpawn.setVisible(false);
-            frameBeforeSpawn.setRotation(getRotationForYaw(player.getLocation().getYaw()));
+            frameBeforeSpawn.setRotation(getRotationForYawAndFace(player.getLocation().getYaw(), clickedFace));
 //            frameBeforeSpawn.setFixed(true);
             if (isCardStack(itemInHand) && !player.isSneaking()) {
                 BundleMeta meta = (BundleMeta) itemInHand.getItemMeta();
@@ -124,11 +124,14 @@ public class CardToGroundListener implements Listener {
     }
 
     // TODO see if cards can skip the manual conversion from yaw to rotation
-    private Rotation getRotationForYaw(double yaw) {
-        if (Math.abs(yaw) > 135) return Rotation.NONE;
-        else if (Math.abs(yaw) < 45) return Rotation.FLIPPED;
-        else if (yaw < 0) return Rotation.CLOCKWISE;
-        else return Rotation.COUNTER_CLOCKWISE;
+    private Rotation getRotationForYawAndFace(double yaw, BlockFace clickedFace) {
+        if (clickedFace == BlockFace.UP || clickedFace == BlockFace.DOWN)  {
+            if (Math.abs(yaw) > 135) return Rotation.NONE;
+            else if (Math.abs(yaw) < 45) return Rotation.FLIPPED;
+            else if (yaw < 0) return clickedFace == BlockFace.UP ? Rotation.CLOCKWISE : Rotation.COUNTER_CLOCKWISE;
+            else return clickedFace == BlockFace.UP ? Rotation.COUNTER_CLOCKWISE : Rotation.CLOCKWISE;
+        }
+        return Rotation.NONE;
     }
 
     static boolean blockFaceHasItemFrame(Block clickedBlock, BlockFace clickedFace) {

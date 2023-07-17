@@ -103,41 +103,43 @@ public class CardInventoryListener implements Listener {
         if (event.getSlotType() == SlotType.RESULT && isCardStack(currentItem)) {
             if (clickType == ClickType.RIGHT) {
                 event.setCancelled(true);
-                return;
             } else {
                 event.getWhoClicked().playSound(SHUFFLING_SOUND);
             }
-            return;
         }
 
         // If double-clicking
-        if (clickType == ClickType.DOUBLE_CLICK && isCardlike(cursor)) {
+        else if (clickType == ClickType.DOUBLE_CLICK && isCardlike(cursor)) {
             onDoubleClickWhileHoldingCardlike(event, cursor);
-            return;
         }
 
         // If flipping over a card
-        if (clickType == ClickType.SWAP_OFFHAND && action == InventoryAction.HOTBAR_SWAP) {
+        else if (clickType == ClickType.SWAP_OFFHAND && action == InventoryAction.HOTBAR_SWAP) {
             event.setCurrentItem(flipCardlike(currentItem));
             event.setCancelled(true);
-            return;
         }
 
-
-        if (clickType == ClickType.RIGHT) {
+        else if (clickType == ClickType.RIGHT) {
             onRightClickInInventory(event, cursor, currentItem);
-            return;
         }
 
-        if (clickType == ClickType.SHIFT_RIGHT) {
+        else if (clickType == ClickType.SHIFT_RIGHT) {
             onShiftRightClickInInventory(event, cursor, currentItem);
-        } else if (clickType == ClickType.LEFT) {
+        }
+
+        else if (clickType == ClickType.LEFT) {
             onLeftClickInInventory(event, cursor, currentItem);
-        } else if (clickType == ClickType.SHIFT_LEFT) {
+        }
+
+        else if (clickType == ClickType.SHIFT_LEFT) {
             onShiftLeftClickInInventory(event, cursor, currentItem);
-        } else if (action == InventoryAction.DROP_ONE_SLOT) {
+        }
+
+        else if (action == InventoryAction.DROP_ONE_SLOT) {
             placeOneCard(event, cursor, currentItem);
-        } else if (action == InventoryAction.DROP_ALL_SLOT) {
+        }
+
+        else if (action == InventoryAction.DROP_ALL_SLOT) {
             placeAllCards(event, cursor, currentItem);
         }
     }
