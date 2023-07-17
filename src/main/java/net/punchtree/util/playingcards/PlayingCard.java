@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -28,6 +29,15 @@ public record PlayingCard(Suit suit, Rank rank) {
     private static final List<Rank> CUSTOM_MODEL_DATA_RANK_ORDER = List.of(Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN, Rank.JACK, Rank.QUEEN, Rank.KING);
     public static final TextComponent FACE_DOWN_CARD_NAME = Component.text("Playing Card").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
     public static final TextComponent FACE_DOWN_CARD_PILE_NAME = Component.text("Playing Card Stack").decoration(TextDecoration.ITALIC, false);
+
+    public static final List<Component> CONTROLS_LORE_EXPANDED = Arrays.asList(
+
+    );
+
+    public static final List<Component> CONTROLS_LORE = Arrays.asList(
+            Component.text("Left - place 1  Right - draw 1").decoration(TextDecoration.ITALIC, false),
+            Component.text("Sneak + R/L - use whole stack ").decoration(TextDecoration.ITALIC, false)
+    );
 
     public static PlayingCard fromItem(ItemStack drawnCard) {
         if (isFaceDownCard(drawnCard)) return fromItem(flipCardlike(drawnCard));
@@ -64,6 +74,7 @@ public record PlayingCard(Suit suit, Rank rank) {
         card.editMeta(meta -> {
             meta.setCustomModelData(getCustomModelDataNumber());
             meta.displayName(getName());
+            meta.lore(CONTROLS_LORE);
         });
         return card;
     }
@@ -73,6 +84,7 @@ public record PlayingCard(Suit suit, Rank rank) {
         cardPile.editMeta(meta -> {
             meta.setCustomModelData(getCustomModelDataNumber());
             meta.displayName(getName());
+            meta.lore(CONTROLS_LORE);
             ((BundleMeta) meta).addItem(getNewItem());
         });
         return cardPile;
@@ -88,6 +100,7 @@ public record PlayingCard(Suit suit, Rank rank) {
             BundleMeta bundleMeta = (BundleMeta) meta;
             meta.setCustomModelData(1001);
             meta.displayName(Component.text("Deck Of Cards").decoration(TextDecoration.ITALIC, false));
+            meta.lore(CONTROLS_LORE);
             List<ItemStack> cardsList = Arrays.stream(Suit.values())
                     .flatMap(suit -> Arrays.stream(Rank.values())
                             .map(rank -> new PlayingCard(suit, rank).getNewItem()))
@@ -103,6 +116,7 @@ public record PlayingCard(Suit suit, Rank rank) {
         faceDownCard.editMeta(meta -> {
             meta.setCustomModelData(CARD_BACK_CUSTOM_MODEL_DATA);
             meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME);
+            meta.lore(CONTROLS_LORE);
         });
         return faceDownCard;
     }
@@ -112,6 +126,7 @@ public record PlayingCard(Suit suit, Rank rank) {
         faceDownCardPile.editMeta(meta -> {
             meta.setCustomModelData(CARD_BACK_CUSTOM_MODEL_DATA);
             meta.displayName(FACE_DOWN_CARD_PILE_NAME);
+            meta.lore(CONTROLS_LORE);
         });
         return faceDownCardPile;
     }
