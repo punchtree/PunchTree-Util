@@ -1,6 +1,6 @@
 name: PunchTree-Util
 main: net.punchtree.util.PunchTreeUtilPlugin
-version: 1.4.0
+version: 1.4.1
 api-version: 1.19
 description: Util libraries common to the whole network
 

@@ -2,6 +2,7 @@ package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,11 +12,8 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryType.SlotType;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
@@ -29,8 +27,9 @@ import static net.punchtree.util.playingcards.PlayingCardUtils.*;
 @SuppressWarnings("UnstableApiUsage")
 public class CardInventoryListener implements Listener {
 
-    private static final Sound SHUFFLING_SOUND = Sound.sound(Key.key("punchtree", "playing_cards.shuffle"), Sound.Source.PLAYER, 1, 1);
-    private static final Sound CARD_FLIP_SOUND = Sound.sound(Key.key("minecraft", "ui.toast.in"), Sound.Source.PLAYER, 1, 1);
+    private static final Sound SHUFFLING_SOUND = Sound.sound(Key.key("punchtree", "playing_cards.shuffle"), Sound.Source.AMBIENT, 1, 1);
+    private static final Sound CARD_FLIP_SOUND = Sound.sound(Key.key("minecraft", "ui.toast.in"), Sound.Source.AMBIENT, 1, 1);
+    private static final Sound CARD_INTERACTION_FAILURE_SOUND = Sound.sound(Key.key("minecraft", "entity.villager.no"), Sound.Source.AMBIENT, 1, 1);
 
     @EventHandler
     public void onFlipCard(PlayerSwapHandItemsEvent event) {
@@ -90,11 +89,12 @@ public class CardInventoryListener implements Listener {
 
         ClickType clickType = event.getClick();
         InventoryAction action = event.getAction();
-//        Bukkit.broadcastMessage(clickType.name());
-//        Bukkit.broadcastMessage(action.name());
-//        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardlike(cursor) ? "Card" : " Not a card"));
-//        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardlike(currentItem) ? "Card" : "Not a card"));
+        Bukkit.broadcastMessage(clickType.name());
+        Bukkit.broadcastMessage(action.name());
+        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardlike(cursor) ? "Card" : " Not a card"));
+        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardlike(currentItem) ? "Card" : "Not a card"));
 //        Bukkit.broadcastMessage(event.getSlotType().name() + " " + event.getSlot());
+        Bukkit.broadcastMessage("=============");
 
         // If clicking on output of a crafting grid
         if (event.getSlotType() == SlotType.RESULT && isCardStack(currentItem)) {
@@ -120,36 +120,35 @@ public class CardInventoryListener implements Listener {
             return;
         }
 
-        // Equivalent of drawing a card only if hand is empty (right-clicking with nothing in cursor)
-        if (!isCardlike(cursor) && isCardlike(currentItem)
-                && clickType == ClickType.RIGHT && action == InventoryAction.PICKUP_HALF) {
-            // FIXME this can be called with a single-card current item, but this method casts the meta as a bundle! ERROR!
-            fixTakingCardsOutOfCardStacks(event, currentItem, false);
+
+        if (clickType == ClickType.RIGHT) {
+            onRightClickInInventory(event, cursor, currentItem);
             return;
         }
 
-        if (!isCardlike(cursor)) return;
+        if (clickType == ClickType.SHIFT_RIGHT) {
+            onShiftRightClickInInventory(event, cursor, currentItem);
+            return;
+        }
 
-        // Dropping single cards out of a stack
+        if (clickType == ClickType.LEFT) {
+            onLeftClickInInventory(event, cursor, currentItem);
+            return;
+        }
+
+        if (clickType == ClickType.SHIFT_LEFT) {
+            onShiftLeftClickInInventory(event, cursor, currentItem);
+            return;
+        }
+
         if (action == InventoryAction.DROP_ONE_SLOT && isCardlike(currentItem)) {
-            if (isSingleCard(cursor)) {
-                event.setCurrentItem(combineCardStacks(cursor, currentItem));
-                event.setCursor(null);
-                event.setCancelled(true);
-                return;
-            }
-            BundleMeta cursorMeta = (BundleMeta) cursor.getItemMeta();
-            ItemStack topCard = cursorMeta.getItems().get(0);
-            event.setCurrentItem(combineCardStacks(topCard, currentItem));
-            if (cursorMeta.getItems().size() == 2) {
-                event.setCursor(cursorMeta.getItems().get(1));
-            } else {
-                cursorMeta.setItems(cursorMeta.getItems().subList(1, cursorMeta.getItems().size()));
-                updateTopCardOfStack(cursorMeta);
-                cursor.setItemMeta(cursorMeta);
-            }
+            placeOneCard(event, cursor, currentItem);
+            return;
+        }
 
-            event.setCancelled(true);
+        if (action == InventoryAction.DROP_ALL_SLOT && isCardlike(currentItem)) {
+            placeAllCards(event, cursor, currentItem);
+            return;
         }
 
         // Checking for action NOTHING is only necessary for combining identical cards - meaning that if we are using a
@@ -164,25 +163,188 @@ public class CardInventoryListener implements Listener {
             event.setCurrentItem(null);
             event.setCursor(newCardStack);
             event.setCancelled(true);
-        } else if (clickType == ClickType.RIGHT && action == InventoryAction.PLACE_ONE && isCardStack(cursor)) {
-            fixTakingCardsOutOfCardStacks(event, cursor, true);
         }
+    }
+
+
+    private void onLeftClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        placeOneCard(event, cursor, currentItem);
+    }
+
+    private void onShiftLeftClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        // Shift left click -> place all
+        placeAllCards(event, cursor, currentItem);
+    }
+
+    private void onRightClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        drawOneCard(event, cursor, currentItem);
+    }
+
+    private static void onShiftRightClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        drawAllCards(event, cursor, currentItem);
+    }
+
+    private static void placeOneCard(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        if (!isCardlike(cursor)) {
+            // In this case, the cursor is not a cardlike, but the stack is, and we're left-clicking
+            // The expected default behavior would be to swap out the cursor and the cardlike item beneath it
+            // But afterward, left-clicking with the card will attempt to place one card from the stack, NOT swap again
+            // So this is kind of mixing control schemas and affordances - it's not clear what the user should expect
+            // So we'll just cancel the event instead
+            event.setCancelled(true);
+            return;
+        }
+
+        if (isSingleCard(cursor)) {
+            if (isCardlike(currentItem)) {
+                event.setCurrentItem(combineCardStacks(cursor, currentItem));
+                event.setCursor(null);
+            } else {
+                event.setCurrentItem(cursor);
+                event.setCursor(currentItem);
+            }
+            event.setCancelled(true);
+            return;
+        }
+
+        // Cursor is holding a cardstack
+        // Because we're dropping ONE card, we can't support the operation on a slot that
+        // already has a non-cardlike item in it, because that item will have nowhere to go
+
+        if (currentItem != null && currentItem.getType() != Material.AIR && !isCardlike(currentItem)) {
+            event.getWhoClicked().playSound(CARD_INTERACTION_FAILURE_SOUND);
+            event.setCancelled(true);
+            return;
+        }
+
+        // Current item is empty and cursor is a stack
+        Bukkit.broadcastMessage("Current item is empty and cursor is a stack");
+        BundleMeta cursorMeta = (BundleMeta) cursor.getItemMeta();
+        ItemStack topCard = cursorMeta.getItems().get(0);
+        if (event.getCurrentItem().getType() == Material.AIR) {
+            event.setCurrentItem(topCard);
+        } else if (isCardlike(currentItem)) {
+            event.setCurrentItem(combineCardStacks(topCard, currentItem));
+        } else {
+            throw new IllegalStateException("This should never happen");
+        }
+
+        if (cursorMeta.getItems().size() == 2) {
+            event.setCursor(cursorMeta.getItems().get(1));
+        } else {
+            cursorMeta.setItems(cursorMeta.getItems().subList(1, cursorMeta.getItems().size()));
+            updateTopCardOfStack(cursorMeta);
+            cursor.setItemMeta(cursorMeta);
+        }
+
+        event.setCancelled(true);
+    }
+
+    private static void placeAllCards(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        if (!isCardlike(cursor)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (isCardlike(currentItem)) {
+            event.setCurrentItem(combineCardStacks(cursor, currentItem));
+            event.setCursor(null);
+        } else {
+            event.setCurrentItem(cursor);
+            event.setCursor(currentItem);
+        }
+        event.setCancelled(true);
+    }
+
+    private static void drawOneCard(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        if (!isCardlike(currentItem)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        // Right-clicking on a bundle actually is a draw-one-thing-out behavior in vanilla minecraft
+        // But for the sake of legibility, we'll reimplement it. It would really only be useful in the case of
+        // drawing a card out of a card-stack with more than 2 cards in it and nothing in the cursor anyway
+
+        if (cursor.getType() == Material.AIR) {
+            ItemStack drawnCard = drawCardFromCurrentItem(event);
+            event.setCursor(drawnCard);
+            event.setCancelled(true);
+        } else if (isCardlike(cursor)) {
+            ItemStack newCursor = combineCardStacks(drawCardFromCurrentItem(event), cursor);
+            event.setCursor(newCursor);
+            event.setCancelled(true);
+        } else {
+            // We're holding a non-card, and we're drawing one - so this needs to only work if we're drawing from
+            // a single card current item that will leave behind an empty slot for the current item to go into
+            // not worth bothering to support legacy broken card stack behavior in this case
+            if (isSingleCard(currentItem)) {
+                event.setCurrentItem(cursor);
+                event.setCursor(currentItem);
+                event.setCancelled(true);
+            } else {
+                event.getWhoClicked().playSound(CARD_INTERACTION_FAILURE_SOUND);
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    private static ItemStack drawCardFromCurrentItem(InventoryClickEvent event) {
+        ItemStack currentItem = event.getCurrentItem();
+        ItemStack drawnCard;
+        if (isSingleCard(currentItem)) {
+            event.setCurrentItem(null);
+            drawnCard = currentItem;
+        } else {
+            BundleMeta bundleMeta = (BundleMeta) currentItem.getItemMeta();
+            drawnCard = bundleMeta.getItems().get(0);
+
+            if (isLastCardInStack(bundleMeta)) {
+                event.getWhoClicked().sendMessage("Warning: fixed a broken card stack that had 1 item in it!");
+                event.setCurrentItem(null);
+            } else if (bundleMeta.getItems().size() == 2) {
+                event.setCurrentItem(bundleMeta.getItems().get(1));
+            } else {
+                bundleMeta.setItems(bundleMeta.getItems().subList(1, bundleMeta.getItems().size()));
+                updateTopCardOfStack(bundleMeta);
+                currentItem.setItemMeta(bundleMeta);
+            }
+        }
+        return drawnCard;
+    }
+
+    private static void drawAllCards(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
+        if (!isCardlike(currentItem)) return;
+
+        if (isCardlike(cursor)) {
+            event.setCursor(combineCardStacks(currentItem, cursor));
+            event.setCurrentItem(null);
+        } else if (cursor.getType() == Material.AIR) {
+            event.setCursor(currentItem);
+            event.setCurrentItem(null);
+        } else {
+            ItemStack tempCursor = event.getCursor();
+            event.setCursor(currentItem);
+            event.setCurrentItem(tempCursor);
+        }
+        event.setCancelled(true);
     }
 
     private static void onDoubleClickWhileHoldingCardlike(InventoryClickEvent event, ItemStack cursor) {
-        List<ItemStack> allCardslikes = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
+        List<ItemStack> allCardlikes = Stream.of(event.getWhoClicked().getInventory().getStorageContents())
                 .filter(PlayingCardUtils::isCardlike)
                 .toList();
 
-        if (allCardslikes.isEmpty() && isCardStack(cursor)) {
+        if (allCardlikes.isEmpty() && isCardStack(cursor)) {
             explodeHeldCardStack(event, cursor);
         } else {
-            collectAllCardsToCursor(event, cursor, allCardslikes);
+            collectAllCardsToCursor(event, cursor, allCardlikes);
         }
+        event.setCancelled(true);
     }
 
-    private static void collectAllCardsToCursor(InventoryClickEvent event, ItemStack cursor, List<ItemStack> allCardslikes) {
-        ItemStack allCardsInOneStack = allCardslikes.stream().reduce(cursor, PlayingCardUtils::combineCardStacks, PlayingCardUtils::combineCardStacks);
+    private static void collectAllCardsToCursor(InventoryClickEvent event, ItemStack cursor, List<ItemStack> allCardlikes) {
+        ItemStack allCardsInOneStack = allCardlikes.stream().reduce(cursor, PlayingCardUtils::combineCardStacks, PlayingCardUtils::combineCardStacks);
         event.setCursor(allCardsInOneStack);
         event.getWhoClicked().getInventory().forEach(itemStack -> {
             if (isCardlike(itemStack)) {
@@ -198,32 +360,6 @@ public class CardInventoryListener implements Listener {
         ItemStack leftOverCardsInAStack = PlayingCard.getItemForCardList(leftOverCards.stream().map(PlayingCard::fromItem).collect(Collectors.toList()));
         event.setCurrentItem(leftOverCardsInAStack);
         event.setCursor(null);
-        event.setCancelled(true);
-    }
-
-    private void fixTakingCardsOutOfCardStacks(InventoryClickEvent event, ItemStack cardStack, boolean isCardStackCursor) {
-        boolean isFaceDown = isFaceDownCardStack(cardStack);
-        BundleMeta bundleMeta = (BundleMeta) cardStack.getItemMeta();
-        ItemStack topCard = bundleMeta.getItems().get(0);
-        ItemStack secondCard = bundleMeta.getItems().get(1);
-
-        if (bundleMeta.getItems().size() == 2) {
-            if (isCardStackCursor) {
-                event.setCursor(secondCard);
-                event.setCurrentItem(topCard);
-            } else {
-                event.setCursor(topCard);
-                event.setCurrentItem(secondCard);
-            }
-            event.setCancelled(true);
-            return;
-        }
-
-        // Fix top card if not face down
-        if (!isFaceDown) {
-            bundleMeta.setCustomModelData(secondCard.getItemMeta().getCustomModelData());
-            cardStack.setItemMeta(bundleMeta);
-        }
     }
 
     @EventHandler
@@ -251,6 +387,13 @@ public class CardInventoryListener implements Listener {
             }
         });
         return clone;
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (isCardlike(event.getOldCursor())) {
+            event.setCancelled(true);
+        }
     }
 
     // TODO try PlayerInventorySlotChangeEvent for creative picking?
