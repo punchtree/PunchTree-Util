@@ -1,6 +1,7 @@
 package net.punchtree.util.playingcards;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.punchtree.util.PunchTreeUtilPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -141,23 +142,35 @@ public class CardToCardListener implements Listener {
 
     static void showCardCount(ItemFrame frame) {
         ItemStack item = frame.getItem();
+        if (!isCardlike(item)) {
+            throw new IllegalArgumentException("ItemFrame must contain a cardlike item to show card count!");
+        }
 
+        TextComponent numberCount;
         if (isSingleCard(item)) {
-            item.editMeta(meta -> meta.displayName(Component.text("1")));
+            numberCount = Component.text("1");
+            item.editMeta(meta -> meta.displayName(numberCount));
         } else {
+            numberCount = Component.text(((BundleMeta) item.getItemMeta()).getItems().size());
             item.editMeta(meta -> {
                 BundleMeta bundleMeta = (BundleMeta) meta;
-                bundleMeta.displayName(Component.text(bundleMeta.getItems().size()));
+                bundleMeta.displayName(numberCount);
             });
         }
         frame.setItem(item);
+
+        TextComponent numberCountFinal = numberCount;
 
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (frame.isValid()) {
                     ItemStack item = frame.getItem();
-                    item.editMeta(meta -> meta.displayName(null));
+                    item.editMeta(meta -> {
+                        if (meta.hasDisplayName() && meta.displayName().equals(numberCountFinal)) {
+                            meta.displayName(null);
+                        }
+                    });
                     frame.setItem(item);
                 }
             }
