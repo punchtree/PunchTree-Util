@@ -217,7 +217,7 @@ public class CardInventoryListener implements Listener {
             return;
         }
 
-        // Current item is empty and cursor is a stack
+        // Current item is empty or a cardlike and cursor is a stack
         Bukkit.broadcastMessage("Current item is empty and cursor is a stack");
         BundleMeta cursorMeta = (BundleMeta) cursor.getItemMeta();
         ItemStack topCard = cursorMeta.getItems().get(0);
