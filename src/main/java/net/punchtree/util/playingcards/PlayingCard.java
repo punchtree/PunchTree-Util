@@ -30,12 +30,8 @@ public record PlayingCard(Suit suit, Rank rank) {
     public static final TextComponent FACE_DOWN_CARD_NAME = Component.text("Playing Card").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
     public static final TextComponent FACE_DOWN_CARD_PILE_NAME = Component.text("Playing Card Stack").decoration(TextDecoration.ITALIC, false);
 
-    public static final List<Component> CONTROLS_LORE_EXPANDED = Arrays.asList(
-
-    );
-
     public static final List<Component> CONTROLS_LORE = Arrays.asList(
-            Component.text("Left - place 1  Right - draw 1").decoration(TextDecoration.ITALIC, false),
+            Component.text("Left - place 1 • Right - draw 1").decoration(TextDecoration.ITALIC, false),
             Component.text("Sneak + R/L - use whole stack ").decoration(TextDecoration.ITALIC, false)
     );
 

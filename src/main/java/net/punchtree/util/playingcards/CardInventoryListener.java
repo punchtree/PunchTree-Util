@@ -6,9 +6,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.punchtree.util.debugvar.DebugVars;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,12 +18,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BundleMeta;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,6 +39,7 @@ public class CardInventoryListener implements Listener {
     private static final Sound SHUFFLING_SOUND = Sound.sound(Key.key("punchtree", "playing_cards.shuffle"), Sound.Source.AMBIENT, 1, 1);
     private static final Sound CARD_FLIP_SOUND = Sound.sound(Key.key("minecraft", "ui.toast.in"), Sound.Source.AMBIENT, 1, 1);
     private static final Sound CARD_INTERACTION_FAILURE_SOUND = Sound.sound(Key.key("minecraft", "entity.villager.no"), Sound.Source.AMBIENT, 1, 1);
+    private static final double CARD_DROP_VELOCITY = 0.25;
 
     @EventHandler
     public void onFlipCard(PlayerSwapHandItemsEvent event) {
@@ -92,12 +99,12 @@ public class CardInventoryListener implements Listener {
 
         ClickType clickType = event.getClick();
         InventoryAction action = event.getAction();
-        Bukkit.broadcastMessage(clickType.name());
-        Bukkit.broadcastMessage(action.name());
-        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardlike(cursor) ? "Card" : " Not a card"));
-        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardlike(currentItem) ? "Card" : "Not a card"));
+//        Bukkit.broadcastMessage(clickType.name());
+//        Bukkit.broadcastMessage(action.name());
+//        Bukkit.broadcastMessage("Cursor is: " + (isCardStack(cursor) ? "Card Stack" : isCardlike(cursor) ? "Card" : " Not a card"));
+//        Bukkit.broadcastMessage("Current is: " + (isCardStack(currentItem) ? "Card Stack" : isCardlike(currentItem) ? "Card" : "Not a card"));
 //        Bukkit.broadcastMessage(event.getSlotType().name() + " " + event.getSlot());
-        Bukkit.broadcastMessage("=============");
+//        Bukkit.broadcastMessage("=============");
 
         // If clicking on output of a crafting grid
         if (event.getSlotType() == SlotType.RESULT && isCardStack(currentItem)) {
@@ -136,12 +143,38 @@ public class CardInventoryListener implements Listener {
         }
 
         else if (action == InventoryAction.DROP_ONE_SLOT) {
-            placeOneCard(event, cursor, currentItem);
+            if (isCardlike(cursor)) {
+                placeOneCard(event, cursor, currentItem);
+            } else if (isCardStack(currentItem)){
+                // Somewhat duplicated code with bottom of placeOneCard - maybe refactorable
+                BundleMeta currentItemMeta = (BundleMeta) currentItem.getItemMeta();
+                ItemStack topCard = currentItemMeta.getItems().get(0);
+                dropItemLikeAPlayer(event.getWhoClicked(), topCard);
+                updateCardStackAfterRemovingTopCard(event::setCurrentItem, currentItem);
+                event.setCancelled(true);
+            } else {
+                // currentItem is a single card - in this case, we want to just let it drop, but cancelling and
+                // re-emulating that behavior lets us detect drop events made without the inventory open so that we
+                // can make dropping a card stack from the hotbar drop one item unless the player is sneaking
+                // TODO CANCEL AND REEMULATE
+                event.setCancelled(true);
+                dropItemLikeAPlayer(event.getWhoClicked(), currentItem);
+                event.setCurrentItem(null);
+            }
         }
 
         else if (action == InventoryAction.DROP_ALL_SLOT) {
-            placeAllCards(event, cursor, currentItem);
+            if (isCardlike(cursor)) {
+                placeAllCards(event, cursor, currentItem);
+            }
+            // This is dropping a whole stack out of an inventory - let it happen
         }
+    }
+
+    private static void dropItemLikeAPlayer(HumanEntity humanEntity, ItemStack topCard) {
+        humanEntity.getWorld().dropItemNaturally(humanEntity.getEyeLocation(), topCard, spawnedCardItem -> {
+            spawnedCardItem.setVelocity(humanEntity.getLocation().getDirection().multiply(CARD_DROP_VELOCITY));
+        });
     }
 
 
@@ -177,9 +210,12 @@ public class CardInventoryListener implements Listener {
             if (isCardlike(currentItem)) {
                 event.setCurrentItem(combineCardStacks(cursor, currentItem));
                 event.setCursor(null);
-            } else {
+            } else if (currentItem != null) {
                 event.setCurrentItem(cursor);
                 event.setCursor(currentItem);
+            } else if (event.getAction() == InventoryAction.DROP_ALL_CURSOR) {
+                // don't cancel this is just dropping a single card with left click
+                return;
             }
             event.setCancelled(true);
             return;
@@ -198,7 +234,13 @@ public class CardInventoryListener implements Listener {
         // Current item is empty or a cardlike and cursor is a stack
         BundleMeta cursorMeta = (BundleMeta) cursor.getItemMeta();
         ItemStack topCard = cursorMeta.getItems().get(0);
-        if (event.getCurrentItem().getType() == Material.AIR) {
+        if (event.getAction() == InventoryAction.DROP_ALL_CURSOR) {
+            // This is still a left click, so we just drop the top card
+            // That said, a shift-left click outside the inventory view but with inventory open can't be detected
+            // So this is actually the ONLY behavior we define for left-clicking, whether shifting or not, with a
+            // card stack outside the inventory window
+            dropItemLikeAPlayer(event.getWhoClicked(), topCard);
+        } else if (event.getCurrentItem().getType() == Material.AIR) {
             event.setCurrentItem(topCard);
         } else if (isCardlike(currentItem)) {
             event.setCurrentItem(combineCardStacks(topCard, currentItem));
@@ -206,15 +248,20 @@ public class CardInventoryListener implements Listener {
             throw new IllegalStateException("This should never happen");
         }
 
-        if (cursorMeta.getItems().size() == 2) {
-            event.setCursor(cursorMeta.getItems().get(1));
-        } else {
-            cursorMeta.setItems(cursorMeta.getItems().subList(1, cursorMeta.getItems().size()));
-            updateTopCardOfStack(cursorMeta);
-            cursor.setItemMeta(cursorMeta);
-        }
-
+        updateCardStackAfterRemovingTopCard(event::setCursor, cursor);
         event.setCancelled(true);
+    }
+
+    private static void updateCardStackAfterRemovingTopCard(Consumer<ItemStack> itemSetter, ItemStack itemStack) {
+        BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
+        if (bundleMeta.getItems().size() == 2) {
+            itemSetter.accept(bundleMeta.getItems().get(1));
+        } else {
+            bundleMeta.setItems(bundleMeta.getItems().subList(1, bundleMeta.getItems().size()));
+            updateTopCardOfStack(bundleMeta);
+            itemStack.setItemMeta(bundleMeta);
+            // no need for itemsetter since we're modifying itemmeta in place
+        }
     }
 
     private static void placeAllCards(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
@@ -387,6 +434,18 @@ public class CardInventoryListener implements Listener {
         event.getPlayer().sendMessage(warning);
         event.getPlayer().playSound(CARD_INTERACTION_FAILURE_SOUND);
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        ItemStack droppedItem = event.getItemDrop().getItemStack();
+        if (!event.getPlayer().isSneaking() && isCardStack(droppedItem)) {
+            event.setCancelled(true);
+            ItemStack topCard = ((BundleMeta) droppedItem.getItemMeta()).getItems().get(0);
+            dropItemLikeAPlayer(event.getPlayer(), topCard);
+            PlayerInventory inventory = event.getPlayer().getInventory();
+            updateCardStackAfterRemovingTopCard(inventory::setItemInMainHand, droppedItem);
+        }
     }
 
     // TODO try PlayerInventorySlotChangeEvent for creative picking?
