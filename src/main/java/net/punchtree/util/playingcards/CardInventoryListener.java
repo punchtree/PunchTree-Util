@@ -240,6 +240,10 @@ public class CardInventoryListener implements Listener {
             // So this is actually the ONLY behavior we define for left-clicking, whether shifting or not, with a
             // card stack outside the inventory window
             dropItemLikeAPlayer(event.getWhoClicked(), topCard);
+        } else if (event.getCurrentItem() == null) {
+            // does nothing, clicking on non-slot part of inventory
+            event.setCancelled(true);
+            return;
         } else if (event.getCurrentItem().getType() == Material.AIR) {
             event.setCurrentItem(topCard);
         } else if (isCardlike(currentItem)) {
@@ -273,7 +277,7 @@ public class CardInventoryListener implements Listener {
         if (isCardlike(currentItem)) {
             event.setCurrentItem(combineCardStacks(cursor, currentItem));
             event.setCursor(null);
-        } else {
+        } else if (currentItem != null) {
             event.setCurrentItem(cursor);
             event.setCursor(currentItem);
         }
@@ -378,12 +382,19 @@ public class CardInventoryListener implements Listener {
     }
 
     private static void explodeHeldCardStack(InventoryClickEvent event, ItemStack cursor) {
-        event.setCurrentItem(cursor); // This just prevents adding items from taking up the current item slot
+        boolean emptyCurrent = event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.AIR;
+        if (emptyCurrent) {
+            event.setCurrentItem(cursor); // This just prevents adding items from taking up the current item slot
+        }
         BundleMeta bundleMeta = (BundleMeta) cursor.getItemMeta();
         Collection<ItemStack> leftOverCards = event.getWhoClicked().getInventory().addItem(bundleMeta.getItems().toArray(new ItemStack[bundleMeta.getItems().size()])).values();
         ItemStack leftOverCardsInAStack = PlayingCard.getItemForCardList(leftOverCards.stream().map(PlayingCard::fromItem).collect(Collectors.toList()));
-        event.setCurrentItem(leftOverCardsInAStack);
-        event.setCursor(null);
+        if (emptyCurrent) {
+            event.setCurrentItem(leftOverCardsInAStack);
+            event.setCursor(null);
+        } else {
+            event.setCursor(leftOverCardsInAStack);
+        }
     }
 
     @EventHandler
