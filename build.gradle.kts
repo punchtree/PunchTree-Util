@@ -59,3 +59,21 @@ tasks {
         useJUnitPlatform()
     }
 }
+
+val localOutputDir: String? by project
+val buildLocal by tasks.registering(Copy::class) {
+    group = "build"
+    description = "Builds the shaded JAR locally without publishing to the live server."
+
+    from("build/libs/${project.name}-${project.version}.jar")
+    into(provider {
+        if (localOutputDir != null) {
+            localOutputDir?.let { project.file(it) }
+        } else {
+            logger.warn("Environment variable LOCAL_OUTPUT_DIR is not set. Using the default output directory.")
+            project.file("build/libs")
+        }
+    })
+    dependsOn("reobfJar")
+    dependsOn("publishToMavenLocal")
+}
