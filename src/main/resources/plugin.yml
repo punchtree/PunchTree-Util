@@ -1,6 +1,6 @@
 name: PunchTree-Util
 main: net.punchtree.util.PunchTreeUtilPlugin
-version: 1.4.2
+version: 1.4.4
 api-version: 1.19
 description: Util libraries common to the whole network
 
@@ -17,9 +17,16 @@ commands:
         usage: /playingcards <subcommand>
         permission: punchtree.in-progress-testing.playing-cards
         aliases: [ pc ]
+    soundtest:
+        usage: /soundtest [page #]
+        aliases: st
+        description: Browse minecraft sounds with /st [page #]
+        permission: punchtree.soundtest
 
 permissions:
     punchtree.debugvar:
         default: false
     punchtree.admin:
         default: false
+    punchtree.soundtest:
+        default: true

@@ -2,6 +2,9 @@ package net.punchtree.util;
 
 import net.punchtree.util.commands.CustomModelDataCommand;
 import net.punchtree.util.playingcards.*;
+import net.punchtree.util.playingcards.pokerchips.PokerChipsListener;
+import net.punchtree.util.sounds.soundtest.SoundMenu;
+import net.punchtree.util.sounds.soundtest.SoundTestCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,8 +26,17 @@ public class PunchTreeUtilPlugin extends JavaPlugin {
 		getCommand("debugvar").setExecutor(debugVarCommand);
 		getCommand("debugvar").setTabCompleter(debugVarCommand);
 		getCommand("cmd").setExecutor(new CustomModelDataCommand());
+		getCommand("soundtest").setExecutor(new SoundTestCommand());
+
+		Bukkit.getPluginManager().registerEvents(new SoundMenu(), this);
 
 		initializePlayingCards();
+
+		initializePokerChips();
+	}
+
+	private void initializePokerChips() {
+		Bukkit.getPluginManager().registerEvents(new PokerChipsListener(), this);
 	}
 
 	private void initializePlayingCards() {
