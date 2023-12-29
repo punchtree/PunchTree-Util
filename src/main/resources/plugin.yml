@@ -4,6 +4,9 @@ version: 1.4.4
 api-version: 1.19
 description: Util libraries common to the whole network
 
+libraries:
+    - org.jetbrains.kotlin:kotlin-stdlib:1.9.22
+
 commands:
     debugvar:
         aliases: dv

@@ -1,4 +1,5 @@
 plugins {
+    kotlin("jvm") version "1.9.22"
     `java-library`
     `maven-publish`
     id("io.papermc.paperweight.userdev") version "1.5.11"
@@ -17,6 +18,10 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 group = "net.punchtree"
