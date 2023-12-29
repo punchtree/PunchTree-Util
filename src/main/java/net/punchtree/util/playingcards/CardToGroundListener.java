@@ -1,5 +1,6 @@
 package net.punchtree.util.playingcards;
 
+import net.punchtree.util.debugvar.DebugVars;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -50,9 +51,16 @@ public class CardToGroundListener implements Listener {
             onShiftRightClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
             return;
         }
+
+        if (!DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
+        }
     }
 
     private void onShiftRightClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
+        if (!DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
+        }
     }
 
     private void onLeftClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
@@ -60,11 +68,16 @@ public class CardToGroundListener implements Listener {
             onShiftLeftClickBlockWithCardlike(itemInHand, player, clickedBlock, clickedFace, hand);
             return;
         }
-        tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
+
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
+        }
     }
 
     private void onShiftLeftClickBlockWithCardlike(ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace, EquipmentSlot hand) {
-        tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            tryPlacingCardlike(hand, itemInHand, player, clickedBlock, clickedFace);
+        }
     }
 
     private void tryPlacingCardlike(EquipmentSlot hand, ItemStack itemInHand, Player player, Block clickedBlock, BlockFace clickedFace) {

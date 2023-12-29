@@ -1,8 +1,7 @@
 package net.punchtree.util.playingcards;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.punchtree.util.PunchTreeUtilPlugin;
+import net.punchtree.util.debugvar.DebugVars;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -14,7 +13,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 
@@ -48,29 +46,36 @@ public class CardToCardListener implements Listener {
     }
 
     // DebugVars.getBoolean("punchtree:right-click-draw-with-empty-hand", true)
-
     private void onRightClickCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
         if (player.isSneaking()) {
             onShiftRightClickCardlike(hand, itemFrame, player, itemInHand);
             return;
         }
 
-        attemptToDrawCardFromCardlike(hand, itemFrame, player, itemInHand);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            attemptToDrawCardFromCardlike(hand, itemFrame, player, itemInHand);
+        } else {
+            CardBreakListener.placeOneCardFromHandOntoCardlike(itemFrame, player);
+        }
     }
 
     private void onShiftRightClickCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
-        CardBreakListener.onPlayerPickupCardlike(itemFrame, player);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            onPlayerPickupCardlike(itemFrame, player);
+        } else {
+            CardBreakListener.attemptToPlaceCardlikeOnCardlike(itemFrame, player);
+        }
     }
 
-    private void attemptToDrawCardFromCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
+    static void attemptToDrawCardFromCardlike(EquipmentSlot hand, ItemFrame itemFrame, Player player, ItemStack itemInHand) {
         // If player's hand is empty, draw a card
         if (itemInHand.getType() == Material.AIR) {
-            player.getInventory().setItem(hand, drawCard(itemFrame).getNewItem());
+            player.getInventory().setItem(hand, drawCard(itemFrame));
             return;
         }
 
         // Otherwise cautiously draw a card only if it will fit in their inventory
-        HashMap<Integer, ItemStack> overflowItems = player.getInventory().addItem(peekCard(itemFrame).getNewItem());
+        HashMap<Integer, ItemStack> overflowItems = player.getInventory().addItem(peekCard(itemFrame));
         if (overflowItems.isEmpty()) {
             drawCard(itemFrame);
         } else {
@@ -79,47 +84,33 @@ public class CardToCardListener implements Listener {
         }
     }
 
-    static void attemptToPlaceCardlikeOnCardlike(ItemFrame itemFrame, Player player) {
-        // TODO The method name implies already knowing the first condition to be true - this should be renamed or refactored
-        ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        if (isCardlike(itemInHand)) {
-            addCardlikeToFrame(itemFrame, itemInHand);
-            player.getInventory().setItemInMainHand(null);
-        } else {
-            showCardCount(itemFrame);
-        }
-    }
-
-    private static void addCardlikeToFrame(ItemFrame itemFrame, ItemStack cardlikeToAdd) {
-        ItemStack combinedStack = combineCardStacks(cardlikeToAdd, itemFrame.getItem());
-        itemFrame.setItem(combinedStack);
-        showCardCount(itemFrame);
-    }
-
-    private PlayingCard peekCard(ItemFrame itemFrame) {
+    private static ItemStack peekCard(ItemFrame itemFrame) {
         ItemStack itemStack = itemFrame.getItem();
         if (isSingleCard(itemStack)) {
-            return PlayingCard.fromItem(itemStack);
+//            return PlayingCard.fromItem(itemStack);
+            return itemStack;
         }
 
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
-        return PlayingCard.fromItem(drawnCard);
+        return drawnCard;
+//        return PlayingCard.fromItem(drawnCard);
     }
 
-    private PlayingCard drawCard(ItemFrame itemFrame) {
+    private static ItemStack drawCard(ItemFrame itemFrame) {
         ItemStack itemStack = itemFrame.getItem();
 
         if (isSingleCard(itemStack)) {
             itemFrame.remove();
-            return PlayingCard.fromItem(itemStack);
+//            return PlayingCard.fromItem(itemStack);
+            return itemStack;
         }
 
         BundleMeta bundleMeta = (BundleMeta) itemStack.getItemMeta();
         ItemStack drawnCard = bundleMeta.getItems().get(0);
-        if (isFaceDownCard(drawnCard)) {
-            drawnCard = flipCardlike(drawnCard);
-        }
+//        if (isFaceDownCard(drawnCard)) {
+//            drawnCard = flipCardlike(drawnCard);
+//        }
 
         if (isLastCardInStack(bundleMeta)) {
             itemFrame.remove();
@@ -137,50 +128,59 @@ public class CardToCardListener implements Listener {
             itemFrame.setItem(itemStack);
             showCardCount(itemFrame);
         }
-        return PlayingCard.fromItem(drawnCard);
+        return drawnCard;
+//        return PlayingCard.fromItem(drawnCard);
     }
 
-    static void showCardCount(ItemFrame frame) {
-        ItemStack item = frame.getItem();
-        if (!isCardlike(item)) {
-            throw new IllegalArgumentException("ItemFrame must contain a cardlike item to show card count!");
-        }
+    static void onPlayerPickupCardlike(ItemFrame itemFrame, Player player) {
+        ItemStack cardlikeToDrop = getBrokenCardItem(itemFrame.getItem());
+        addItemToInventoryOrDrop(player, itemFrame, cardlikeToDrop);
+        itemFrame.getWorld().playSound(itemFrame.getLocation(), Sound.ENTITY_ITEM_FRAME_REMOVE_ITEM, 1, 1);
+        itemFrame.remove();
+    }
 
-        TextComponent numberCount;
-        if (isSingleCard(item)) {
-            numberCount = Component.text("1");
-            item.editMeta(meta -> meta.displayName(numberCount));
-        } else {
-            numberCount = Component.text(((BundleMeta) item.getItemMeta()).getItems().size());
-            item.editMeta(meta -> {
-                BundleMeta bundleMeta = (BundleMeta) meta;
-                bundleMeta.displayName(numberCount);
-            });
-        }
-        frame.setItem(item);
-
-        TextComponent numberCountFinal = numberCount;
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (frame.isValid()) {
-                    ItemStack item = frame.getItem();
-                    item.editMeta(meta -> {
-                        if (meta.hasDisplayName() && meta.displayName().equals(numberCountFinal)) {
-                            meta.displayName(null);
-                        }
-                    });
-                    frame.setItem(item);
-                }
+    static ItemStack getBrokenCardItem(ItemStack cardlike) {
+        ItemStack cardToDrop = cardlike;
+        if (isFaceDownCardStack(cardlike)) {
+            BundleMeta bundleMeta = (BundleMeta) cardlike.getItemMeta();
+            // make this a face down card
+            if (isLastCardInStack(bundleMeta)) {
+                // this is legacy behavior
+                Bukkit.broadcastMessage("Breaking a single face down card THAT'S A BUNDLE");
+                cardToDrop = flipCardlike(bundleMeta.getItems().get(0));
+            } else {
+                // face down card stack > 1
+                bundleMeta.displayName(PlayingCard.FACE_DOWN_CARD_PILE_NAME);
             }
-        }.runTaskLater(PunchTreeUtilPlugin.getInstance(), 20);
+            cardlike.setItemMeta(bundleMeta);
+        } else if (isFaceUpCardStack(cardlike)) {
+            BundleMeta bundleMeta = (BundleMeta) cardlike.getItemMeta();
+            if (isLastCardInStack(bundleMeta)) {
+                // this is legacy behavior
+                Bukkit.broadcastMessage("Breaking a single face up card THAT'S A BUNDLE");
+                cardToDrop = bundleMeta.getItems().get(0);
+            } else {
+                // face up card stack > 1
+                bundleMeta.displayName(PlayingCard.fromItem(bundleMeta.getItems().get(0)).getName());
+            }
+            cardlike.setItemMeta(bundleMeta);
+        } else if (isFaceUpCard(cardlike)){
+            // need to reset the title because it may be modified by the card count indicator
+            cardlike.editMeta(meta -> meta.displayName(PlayingCard.fromItem(cardlike).getName()));
+        } else if (isFaceDownCard(cardlike)) {
+            // need to reset the title because it may be modified by the card count indicator
+            cardlike.editMeta(meta -> meta.displayName(PlayingCard.FACE_DOWN_CARD_NAME));
+        } else {
+            throw new IllegalArgumentException("ItemStack supposed to be a broken cardlike is not a card or card stack");
+        }
+        return cardToDrop;
     }
 
-
-
-
-
-
+    private static void addItemToInventoryOrDrop(Player player, ItemFrame itemFrame, ItemStack cardToDrop) {
+        HashMap<Integer, ItemStack> overflowItems = player.getInventory().addItem(cardToDrop);
+        if (!overflowItems.isEmpty()) {
+            itemFrame.getWorld().dropItem(itemFrame.getLocation(), cardToDrop);
+        }
+    }
 
 }

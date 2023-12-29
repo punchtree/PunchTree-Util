@@ -21,7 +21,6 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BundleMeta;
@@ -179,20 +178,36 @@ public class CardInventoryListener implements Listener {
 
 
     private void onLeftClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
-        placeOneCard(event, cursor, currentItem);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            placeOneCard(event, cursor, currentItem);
+        } else {
+            drawOneCard(event, cursor, currentItem);
+        }
     }
 
     private void onShiftLeftClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
         // Shift left click -> place all
-        placeAllCards(event, cursor, currentItem);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            placeAllCards(event, cursor, currentItem);
+        } else {
+            drawAllCards(event, cursor, currentItem);
+        }
     }
 
     private void onRightClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
-        drawOneCard(event, cursor, currentItem);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            drawOneCard(event, cursor, currentItem);
+        } else {
+            placeOneCard(event, cursor, currentItem);
+        }
     }
 
     private static void onShiftRightClickInInventory(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {
-        drawAllCards(event, cursor, currentItem);
+        if (DebugVars.getBoolean(PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG, true)) {
+            drawAllCards(event, cursor, currentItem);
+        } else {
+            placeAllCards(event, cursor, currentItem);
+        }
     }
 
     private static void placeOneCard(InventoryClickEvent event, ItemStack cursor, ItemStack currentItem) {

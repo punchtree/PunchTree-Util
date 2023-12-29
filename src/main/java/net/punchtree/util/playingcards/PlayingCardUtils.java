@@ -1,10 +1,14 @@
 package net.punchtree.util.playingcards;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.punchtree.util.PunchTreeUtilPlugin;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +26,7 @@ public class PlayingCardUtils {
 
     private static final int PLAYING_CARD_STACK_MIN_CUSTOM_MODEL_DATA = 1001;
     private static final int PLAYING_CARD_STACK_MAX_CUSTOM_MODEL_DATA = 1052;
+    static final String PUNCHTREE_CARDS_LEFT_CLICK_PLACE_FLAG = "punchtree:cards:left-click-place";
 
     static boolean isCardlike(ItemStack item) {
         return isFaceUpCard(item) || isFaceUpCardStack(item) || isFaceDownCard(item) || isFaceDownCardStack(item);
@@ -168,5 +173,42 @@ public class PlayingCardUtils {
 
         combinedStack.setItemMeta(combinedStackMeta);
         return combinedStack;
+    }
+
+    static void showCardCount(ItemFrame frame) {
+        ItemStack item = frame.getItem();
+        if (!isCardlike(item)) {
+            throw new IllegalArgumentException("ItemFrame must contain a cardlike item to show card count!");
+        }
+
+        TextComponent numberCount;
+        if (isSingleCard(item)) {
+            numberCount = Component.text("1");
+            item.editMeta(meta -> meta.displayName(numberCount));
+        } else {
+            numberCount = Component.text(((BundleMeta) item.getItemMeta()).getItems().size());
+            item.editMeta(meta -> {
+                BundleMeta bundleMeta = (BundleMeta) meta;
+                bundleMeta.displayName(numberCount);
+            });
+        }
+        frame.setItem(item);
+
+        TextComponent numberCountFinal = numberCount;
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (frame.isValid()) {
+                    ItemStack item = frame.getItem();
+                    item.editMeta(meta -> {
+                        if (meta.hasDisplayName() && meta.displayName().equals(numberCountFinal)) {
+                            meta.displayName(null);
+                        }
+                    });
+                    frame.setItem(item);
+                }
+            }
+        }.runTaskLater(PunchTreeUtilPlugin.getInstance(), 20);
     }
 }
