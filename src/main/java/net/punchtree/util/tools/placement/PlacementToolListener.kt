@@ -8,6 +8,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.EquipmentSlot
 
@@ -47,6 +48,12 @@ class PlacementToolListener : Listener {
         if (PlacementTool.adjustVerticalOffSet(player)) {
             event.isCancelled = true
         }
+    }
+
+    @EventHandler
+    fun onCardInventoryClick(event: PlayerQuitEvent) {
+        val player = event.player
+        PlacementTool.disableFor(player)
     }
 
     companion object {
