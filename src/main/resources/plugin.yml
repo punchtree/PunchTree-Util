@@ -25,6 +25,9 @@ commands:
         aliases: st
         description: Browse minecraft sounds with /st [page #]
         permission: punchtree.soundtest
+    placementtool:
+        usage: /placementtool [on|off]
+        aliases: [ pmt ]
 
 permissions:
     punchtree.debugvar:

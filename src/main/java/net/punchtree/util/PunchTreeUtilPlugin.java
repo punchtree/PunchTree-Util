@@ -5,6 +5,10 @@ import net.punchtree.util.playingcards.*;
 import net.punchtree.util.playingcards.pokerchips.PokerChipsListener;
 import net.punchtree.util.sounds.soundtest.SoundMenu;
 import net.punchtree.util.sounds.soundtest.SoundTestCommand;
+import net.punchtree.util.tools.placement.MovePacketListener;
+import net.punchtree.util.tools.placement.PlacementTool;
+import net.punchtree.util.tools.placement.PlacementToolCommand;
+import net.punchtree.util.tools.placement.PlacementToolListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +32,11 @@ public class PunchTreeUtilPlugin extends JavaPlugin {
 		getCommand("cmd").setExecutor(new CustomModelDataCommand());
 		getCommand("soundtest").setExecutor(new SoundTestCommand());
 
+
+		getCommand("placementtool").setExecutor(PlacementToolCommand.INSTANCE);
+		Bukkit.getPluginManager().registerEvents(new PlacementToolListener(), this);
+		MovePacketListener.INSTANCE.enable();
+
 		Bukkit.getPluginManager().registerEvents(new SoundMenu(), this);
 
 		initializePlayingCards();
@@ -47,5 +56,10 @@ public class PunchTreeUtilPlugin extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new CardInventoryListener(), this);
 	}
 
+	@Override
+	public void onDisable() {
+		PlacementTool.INSTANCE.onDisable();
+		MovePacketListener.INSTANCE.disable();
+	}
 
 }

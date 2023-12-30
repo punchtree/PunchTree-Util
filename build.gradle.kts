@@ -14,10 +14,14 @@ repositories {
     maven {
         url = uri("https://repo.maven.apache.org/maven2/")
     }
+    
+    maven { url = uri("https://repo.dmulloy2.net/repository/public/") }
 }
 
 dependencies {
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+
+    compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
 }
 
 kotlin {
