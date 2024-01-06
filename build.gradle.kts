@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    compileOnly(kotlin("stdlib"))
+
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
