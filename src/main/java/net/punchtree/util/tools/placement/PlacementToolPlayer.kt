@@ -1,7 +1,9 @@
 package net.punchtree.util.tools.placement
 
 import net.punchtree.util.color.PunchTreeColor
+import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
@@ -14,7 +16,8 @@ const val REACH = 6.5
 private const val MAX_DESTRUCTION_DISTANCE_FROM_PREVIEW_LOCATION = 0.5
 
 private const val PLACEMENT_TOOL_PLACED_TAG = "placement-tool-placed"
-private const val LOQINTTEMP_TAG = "loqinttemp"
+
+private const val PLACEMENT_SOUND = "block.wood.place"
 
 class PlacementToolPlayer(val player: Player) {
 
@@ -70,12 +73,15 @@ class PlacementToolPlayer(val player: Player) {
     }
 
     fun place() {
+        if (previewDisplay.itemStack?.type == Material.AIR) {
+            return
+        }
         player.world.spawnEntity(previewDisplay.location, EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             val placedItem: ItemDisplay = it as ItemDisplay
             placedItem.itemStack = previewDisplay.itemStack
             placedItem.setRotation(yaw, 0f)
             placedItem.addScoreboardTag(PLACEMENT_TOOL_PLACED_TAG)
-            placedItem.addScoreboardTag(LOQINTTEMP_TAG)
+            player.playSound(player.location, PLACEMENT_SOUND, 1f, 1f)
         }
     }
 
