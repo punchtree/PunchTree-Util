@@ -2,6 +2,7 @@ package net.punchtree.util
 
 import net.punchtree.util.color.ColoredScoreboardTeams
 import net.punchtree.util.commands.CustomModelDataCommand
+import net.punchtree.util.commands.UtiliKillCommand
 import net.punchtree.util.debugvar.DebugVarCommand
 import net.punchtree.util.playingcards.*
 import net.punchtree.util.playingcards.pokerchips.PokerChipsListener
@@ -26,6 +27,7 @@ class PunchTreeUtilPlugin : JavaPlugin() {
         getCommand("soundtest")!!.setExecutor(SoundTestCommand())
         getCommand("placementtool")!!.setExecutor(PlacementToolCommand)
 		getCommand("interactionplacementtool")!!.setExecutor(InteractionPlacementToolCommand)
+        getCommand("utilikill")!!.setExecutor(UtiliKillCommand)
 
         Bukkit.getPluginManager().registerEvents(PlacementToolListener(), this)
 

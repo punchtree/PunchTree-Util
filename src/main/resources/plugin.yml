@@ -33,6 +33,10 @@ commands:
         usage: /interactionplacementtool [on|off]
         aliases: [ ipmt ]
         permission: punchtree.admin.interactionplacementtool
+    utilikill:
+        usage: /utilikill <tag> [max distance] [type]
+        aliases: [ uk ]
+        permission: punchtree.admin.utilikill
 
 permissions:
     punchtree.debugvar:
