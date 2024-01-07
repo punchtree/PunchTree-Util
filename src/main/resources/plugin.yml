@@ -28,6 +28,11 @@ commands:
     placementtool:
         usage: /placementtool [on|off]
         aliases: [ pmt ]
+        permission: punchtree.admin.placementtool
+    interactionplacementtool:
+        usage: /interactionplacementtool [on|off]
+        aliases: [ ipmt ]
+        permission: punchtree.admin.interactionplacementtool
 
 permissions:
     punchtree.debugvar:
