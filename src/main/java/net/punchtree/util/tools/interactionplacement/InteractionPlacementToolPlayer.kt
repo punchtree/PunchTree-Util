@@ -117,6 +117,7 @@ class InteractionPlacementToolPlayer(val player: Player) {
             it.interactionWidth = horizontalScale
             it.interactionHeight = verticalScale
             it.scoreboardTags.add(INTERACTION_TOOL_PLACED_TAG)
+            tagsToAdd.forEach { tag -> it.scoreboardTags.add(tag) }
         }
     }
 
@@ -193,6 +194,18 @@ class InteractionPlacementToolPlayer(val player: Player) {
         return abs(selectedForDestructionInteraction.location.x - previewDisplay.location.x) > horizontalScale / 2.0 ||
                 abs(selectedForDestructionInteraction.location.y - previewDisplay.location.y) > verticalScale / 2.0 ||
                 abs(selectedForDestructionInteraction.location.z - previewDisplay.location.z) > horizontalScale / 2.0
+    }
+
+    fun addTagToAdd(tag: String) {
+        tagsToAdd.add(tag)
+    }
+
+    fun removeTagToAdd(tag: String) {
+        tagsToAdd.remove(tag)
+    }
+
+    fun clearTagsToAdd() {
+        tagsToAdd.clear()
     }
 
 }

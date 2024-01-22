@@ -1,6 +1,7 @@
 package net.punchtree.util.tools.interactionplacement
 
-import net.punchtree.util.tools.placement.PlacementToolPlayer
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 
 
@@ -82,6 +83,35 @@ object InteractionPlacementTool {
         return false
     }
 
+    fun addTagToAdd(sender: Player, tag: String) {
+        playersUsingInteractionPlacementTool[sender]?.let {
+            it.addTagToAdd(tag)
+        } ?: run {
+            sender.sendMessage(
+                Component.text("You must be using the interaction placement tool to add tags that will be added to spawned interactions!").color(
+                NamedTextColor.RED))
+        }
+    }
+
+    fun removeTagToAdd(sender: Player, tag: String) {
+        playersUsingInteractionPlacementTool[sender]?.let {
+            it.removeTagToAdd(tag)
+        } ?: run {
+            sender.sendMessage(
+                Component.text("You must be using the interaction placement tool to remove tags that will be added to spawned interactions!").color(
+                NamedTextColor.RED))
+        }
+    }
+
+    fun clearTagsToAdd(sender: Player) {
+        playersUsingInteractionPlacementTool[sender]?.let {
+            it.clearTagsToAdd()
+        } ?: run {
+            sender.sendMessage(
+                Component.text("You must be using the interaction placement tool to clear tags that will be added to spawned interactions!").color(
+                NamedTextColor.RED))
+        }
+    }
 
 
 }

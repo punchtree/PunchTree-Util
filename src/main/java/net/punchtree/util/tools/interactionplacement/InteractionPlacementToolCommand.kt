@@ -1,20 +1,15 @@
 package net.punchtree.util.tools.interactionplacement
 
-import net.punchtree.util.tools.placement.PlacementTool
-import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
-import org.bukkit.entity.Display
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Interaction
-import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import org.bukkit.event.entity.CreatureSpawnEvent
-import org.bukkit.inventory.ItemStack
+import java.util.regex.Pattern
 
 object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
+
+    private val validTagPattern = Pattern.compile("^[a-z0-9-:]+$")
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
         if (sender !is Player) return false
@@ -50,6 +45,34 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
             "off" -> {
                 InteractionPlacementTool.disableFor(sender)
                 sender.sendMessage("Interaction placement tool disabled")
+            }
+            "addtag" -> {
+                if (args.size < 2) return false
+                if (!validTagPattern.matcher(args[1]).matches()) {
+                    sender.sendMessage("Invalid tag: ${args[1]}. Valid characters are a-z, 0-9, -, and :")
+                    return true
+                }
+                InteractionPlacementTool.addTagToAdd(sender, args[1])
+            }
+            "removetag" -> {
+                if (args.size < 2) return false
+                if (!validTagPattern.matcher(args[1]).matches()) {
+                    sender.sendMessage("Invalid tag: ${args[1]}. Valid characters are a-z, 0-9, -, and :")
+                    return true
+                }
+                InteractionPlacementTool.removeTagToAdd(sender, args[1])
+            }
+            "cleartags" -> {
+                InteractionPlacementTool.clearTagsToAdd(sender)
+            }
+            "help" -> {
+                sender.sendMessage("Interaction placement tool help:")
+                sender.sendMessage("/ipt - toggle the interaction placement tool on and off")
+                sender.sendMessage("/ipt on - enable the interaction placement tool")
+                sender.sendMessage("/ipt off - disable the interaction placement tool")
+                sender.sendMessage("/ipt addtag <tag> - add a tag to be added to placed interactions")
+                sender.sendMessage("/ipt removetag <tag> - remove a tag from being added to placed interactions")
+                sender.sendMessage("/ipt cleartags - clear all tags to be added to placed interactions")
             }
             else -> return false
         }
