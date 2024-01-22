@@ -3,9 +3,10 @@ package net.punchtree.util.tools.interactionplacement
 import net.punchtree.util.tools.placement.PlacementToolPlayer
 import org.bukkit.entity.Player
 
+
 object InteractionPlacementTool {
 
-    private val playersUsingInteractionPlacementTool = mutableMapOf<Player, PlacementToolPlayer>()
+    private val playersUsingInteractionPlacementTool = mutableMapOf<Player, InteractionPlacementToolPlayer>()
 
     internal fun toggleFor(player: Player): Boolean {
         if (playersUsingInteractionPlacementTool.containsKey(player)) {
@@ -18,7 +19,7 @@ object InteractionPlacementTool {
     }
 
     internal fun enableFor(player: Player) {
-        playersUsingInteractionPlacementTool[player] = PlacementToolPlayer(player)
+        playersUsingInteractionPlacementTool[player] = InteractionPlacementToolPlayer(player)
     }
 
     internal fun disableFor(player: Player) {
@@ -49,31 +50,30 @@ object InteractionPlacementTool {
         return false
     }
 
-    fun onScroll(player: Player, scrollAmount: Int): Boolean {
+    fun onAdjustHeight(player: Player, scrollAmount: Int): Boolean {
         playersUsingInteractionPlacementTool[player]?.let {
-            it.rotate(scrollAmount)
+            it.adjustHeight(scrollAmount)
             return true
         }
         return false
     }
 
-    fun updatePreview(player: Player) {
-        playersUsingInteractionPlacementTool[player]?.placePreviewAtRaycast()
-    }
-
-    fun adjustVerticalOffSet(player: Player): Boolean {
-        if (player.isSneaking) {
-            playersUsingInteractionPlacementTool[player]?.let {
-                it.adjustVerticalOffset(false)
-                return true
-            }
-        } else {
-            playersUsingInteractionPlacementTool[player]?.let {
-                it.adjustVerticalOffset(true)
-                return true
-            }
+    fun onAdjustDistance(player: Player, scrollAmount: Int): Boolean {
+        playersUsingInteractionPlacementTool[player]?.let {
+            it.adjustDistance(scrollAmount)
+            return true
         }
         return false
     }
+
+    fun decreaseHorizontalSize(player: Player) {
+        playersUsingInteractionPlacementTool[player]?.decreaseHorizontalSize()
+    }
+
+    fun increaseHorizontalSize(player: Player) {
+        playersUsingInteractionPlacementTool[player]?.increaseHorizontalSize()
+    }
+
+
 
 }

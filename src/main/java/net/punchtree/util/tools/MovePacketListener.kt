@@ -1,10 +1,12 @@
-package net.punchtree.util.tools.placement
+package net.punchtree.util.tools
 
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.events.PacketAdapter
 import com.comphenix.protocol.events.PacketEvent
 import net.punchtree.util.PunchTreeUtilPlugin
+import net.punchtree.util.tools.interactionplacement.InteractionPlacementTool
+import net.punchtree.util.tools.placement.PlacementTool
 import org.bukkit.scheduler.BukkitRunnable
 
 object MovePacketListener {
@@ -24,6 +26,7 @@ object MovePacketListener {
             object : BukkitRunnable() {
                 override fun run() {
                     PlacementTool.onMove(event.player)
+                    InteractionPlacementTool.onMove(event.player)
                 }
             }.runTask(PunchTreeUtilPlugin.instance)
         }

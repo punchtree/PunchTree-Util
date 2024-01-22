@@ -51,7 +51,7 @@ class PlacementToolListener : Listener {
     }
 
     @EventHandler
-    fun onCardInventoryClick(event: PlayerQuitEvent) {
+    fun onPlayerQuit(event: PlayerQuitEvent) {
         val player = event.player
         PlacementTool.disableFor(player)
     }

@@ -9,7 +9,9 @@ import net.punchtree.util.playingcards.pokerchips.PokerChipsListener
 import net.punchtree.util.sounds.soundtest.SoundMenu
 import net.punchtree.util.sounds.soundtest.SoundTestCommand
 import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolCommand
-import net.punchtree.util.tools.placement.MovePacketListener
+import net.punchtree.util.tools.MovePacketListener
+import net.punchtree.util.tools.interactionplacement.InteractionPlacementTool
+import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolListener
 import net.punchtree.util.tools.placement.PlacementTool
 import net.punchtree.util.tools.placement.PlacementToolCommand
 import net.punchtree.util.tools.placement.PlacementToolListener
@@ -30,6 +32,7 @@ class PunchTreeUtilPlugin : JavaPlugin() {
         getCommand("utilikill")!!.setExecutor(UtiliKillCommand)
 
         Bukkit.getPluginManager().registerEvents(PlacementToolListener(), this)
+        Bukkit.getPluginManager().registerEvents(InteractionPlacementToolListener(), this)
 
         MovePacketListener.enable()
         Bukkit.getPluginManager().registerEvents(SoundMenu(), this)
@@ -51,6 +54,7 @@ class PunchTreeUtilPlugin : JavaPlugin() {
 
     override fun onDisable() {
         PlacementTool.onDisable()
+        InteractionPlacementTool.onDisable()
         MovePacketListener.disable()
     }
 

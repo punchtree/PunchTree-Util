@@ -19,37 +19,37 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
         if (sender !is Player) return false
         if (args == null || args.isEmpty()) {
-            val nowEnabled = PlacementTool.toggleFor(sender)
-            sender.sendMessage("Placement tool ${if (nowEnabled) "enabled" else "disabled"}")
+            val nowEnabled = InteractionPlacementTool.toggleFor(sender)
+            sender.sendMessage("Interaction placement tool ${if (nowEnabled) "enabled" else "disabled"}")
             return true
         }
 
         when(args[0]) {
-            "test" -> {
-                sender.sendMessage("Interaction Test")
-                val testInteraction = sender.world.spawnEntity(sender.location, EntityType.INTERACTION, CreatureSpawnEvent.SpawnReason.CUSTOM) {
-                    it.isGlowing = true
-                    it.addScoreboardTag("test-interaction")
-                    it.addScoreboardTag("loqinttemp")
-                } as Interaction
-                val testDisplay = sender.world.spawnEntity(sender.location.apply {
-                     y += 0.5
-                     yaw = 0f
-                     pitch = 0f
-                }, EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
-                    (it as ItemDisplay).itemStack = ItemStack(Material.WHITE_CONCRETE, 1)
-                    it.isGlowing = true
-                    it.addScoreboardTag("test-display")
-                    it.addScoreboardTag("loqinttemp")
-                } as ItemDisplay
-            }
+//            "test" -> {
+//                sender.sendMessage("Interaction Test")
+//                val testInteraction = sender.world.spawnEntity(sender.location, EntityType.INTERACTION, CreatureSpawnEvent.SpawnReason.CUSTOM) {
+//                    it.isGlowing = true
+//                    it.addScoreboardTag("test-interaction")
+//                    it.addScoreboardTag("loqinttemp")
+//                } as Interaction
+//                val testDisplay = sender.world.spawnEntity(sender.location.apply {
+//                     y += 0.5
+//                     yaw = 0f
+//                     pitch = 0f
+//                }, EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
+//                    (it as ItemDisplay).itemStack = ItemStack(Material.WHITE_CONCRETE, 1)
+//                    it.isGlowing = true
+//                    it.addScoreboardTag("test-display")
+//                    it.addScoreboardTag("loqinttemp")
+//                } as ItemDisplay
+//            }
             "on" -> {
-                PlacementTool.enableFor(sender)
-                sender.sendMessage("Placement tool enabled")
+                InteractionPlacementTool.enableFor(sender)
+                sender.sendMessage("Interaction placement tool enabled")
             }
             "off" -> {
-                PlacementTool.disableFor(sender)
-                sender.sendMessage("Placement tool disabled")
+                InteractionPlacementTool.disableFor(sender)
+                sender.sendMessage("Interaction placement tool disabled")
             }
             else -> return false
         }
