@@ -1,5 +1,6 @@
 package net.punchtree.util.tools.interactionplacement
 
+import net.kyori.adventure.text.Component
 import net.minecraft.util.Mth.clamp
 import net.punchtree.util.color.PunchTreeColor
 import net.punchtree.util.tools.placement.PlacementToolPlayer.Companion.snapToPixelGrid
@@ -17,15 +18,18 @@ const val DEFAULT_REACH = 2.5
 const val MIN_REACH = 0.5
 const val MAX_REACH = 7.5
 
-private const val ONE_PIXEL = 0.0625f
+private const val PIXELS_TO_BLOCKS = 0.0625f
 
 private const val INTERACTION_TOOL_PLACED_TAG = "interaction-tool-placed"
 
 class InteractionPlacementToolPlayer(val player: Player) {
 
+    private var horizontalScalePixels = 16
+    private val horizontalScale get() = horizontalScalePixels * PIXELS_TO_BLOCKS
+    private var verticalScalePixels = 16
+    private val verticalScale get() = verticalScalePixels * PIXELS_TO_BLOCKS
+    private var tagsToAdd = mutableSetOf<String>()
     private var distance = DEFAULT_REACH
-    private var horizontalScale = 1f
-    private var verticalScale = 1f
     private val previewDisplay: ItemDisplay =
         player.world.spawnEntity(snapToPixelGrid(player.location), EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             it as ItemDisplay
@@ -55,6 +59,8 @@ class InteractionPlacementToolPlayer(val player: Player) {
         }
     }
 
+
+
     fun placePreviewAtRaycast() {
         selectedForDestructionInteraction?.let {
             if (playerStoppedLookingAtSelectedForDestructionInteraction(it)) {
@@ -67,10 +73,10 @@ class InteractionPlacementToolPlayer(val player: Player) {
 
         player.eyeLocation.add(player.location.direction.multiply(distance)).let {
             previewDisplay.teleport(snapToPixelGrid(it).apply {
-                if ((verticalScale / 0.0625) % 2 != 0.0) {
+                if (verticalScalePixels % 2 != 0) {
                     y -= 0.03125
                 }
-                if ((horizontalScale / 0.0625) % 2 != 0.0) {
+                if (horizontalScalePixels % 2 != 0) {
                     x -= 0.03125
                     z -= 0.03125
                 }
@@ -86,11 +92,11 @@ class InteractionPlacementToolPlayer(val player: Player) {
             )
 
             previewInteraction.teleport(snapToPixelGrid(it).apply {
-                y -= 0.5 * verticalScale
-                if ((verticalScale / 0.0625) % 2 != 0.0) {
+                y -= 0.5 * verticalScalePixels * PIXELS_TO_BLOCKS
+                if (verticalScalePixels % 2 != 0) {
                     y -= 0.03125
                 }
-                if ((horizontalScale / 0.0625) % 2 != 0.0) {
+                if (horizontalScalePixels % 2 != 0) {
                     x -= 0.03125
                     z -= 0.03125
                 }
@@ -100,10 +106,12 @@ class InteractionPlacementToolPlayer(val player: Player) {
             previewInteraction.interactionWidth = horizontalScale
             previewInteraction.interactionHeight = verticalScale
         }
+
+        player.sendActionBar(Component.text("width ${horizontalScalePixels}px | height ${verticalScalePixels}px | tags to add: [${tagsToAdd.joinToString(",")}]"))
     }
 
     fun place() {
-        player.sendMessage("Placed interaction with width $horizontalScale and height $verticalScale")
+        player.sendMessage("Placed interaction with width ")
         player.world.spawnEntity(previewInteraction.location, EntityType.INTERACTION, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             it as Interaction
             it.interactionWidth = horizontalScale
@@ -113,22 +121,22 @@ class InteractionPlacementToolPlayer(val player: Player) {
     }
 
     fun adjustHeight(scrollAmount: Int) {
-        verticalScale = max(ONE_PIXEL, verticalScale + scrollAmount * ONE_PIXEL)
+        verticalScalePixels = max(1, verticalScalePixels + scrollAmount)
         placePreviewAtRaycast()
     }
 
     fun adjustDistance(scrollAmount: Int) {
-        distance = clamp(distance + scrollAmount * ONE_PIXEL, MIN_REACH, MAX_REACH)
+        distance = clamp(distance + scrollAmount * PIXELS_TO_BLOCKS, MIN_REACH, MAX_REACH)
         placePreviewAtRaycast()
     }
 
     fun decreaseHorizontalSize() {
-        horizontalScale = max(ONE_PIXEL, horizontalScale - ONE_PIXEL)
+        horizontalScalePixels = max(1, horizontalScalePixels - 1)
         placePreviewAtRaycast()
     }
 
     fun increaseHorizontalSize() {
-        horizontalScale += ONE_PIXEL
+        horizontalScalePixels += 1
         placePreviewAtRaycast()
     }
 
@@ -148,14 +156,12 @@ class InteractionPlacementToolPlayer(val player: Player) {
             //  is closer, which may be inconvenient behavior
             it as Interaction
             if (isSelectedForDestruction(it)) {
-                player.sendActionBar("Deleting an interaction...")
                 it.remove()
                 PunchTreeColor.RED.glowingTeam.removeEntity(selectedForDestructionPreview!!)
                 selectedForDestructionPreview!!.remove()
                 selectedForDestructionPreview = null
                 selectedForDestructionInteraction = null
             } else {
-                player.sendActionBar("Marking an interaction for deletion...")
                 setSelectedForDestructionInteraction(it)
             }
         }
