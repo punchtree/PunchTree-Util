@@ -30,22 +30,28 @@ class InteractionPlacementToolListener : Listener {
     fun onChangeHotbarSlot(event: PlayerItemHeldEvent) {
         if (event.previousSlot == event.newSlot) return
         if (event.player.isSneaking) {
-            InteractionPlacementTool.onAdjustDistance(event.player, calculateScroll(event.previousSlot, event.newSlot))
+            if (InteractionPlacementTool.onAdjustDistance(event.player, calculateScroll(event.previousSlot, event.newSlot))) {
+                event.isCancelled = true
+            }
         } else {
-            InteractionPlacementTool.onAdjustHeight(event.player, calculateScroll(event.previousSlot, event.newSlot))
+            if (InteractionPlacementTool.onAdjustHeight(event.player, calculateScroll(event.previousSlot, event.newSlot))) {
+                event.isCancelled = true
+            }
         }
-        event.isCancelled = true
     }
 
     @EventHandler
     fun onSwapHand(event: PlayerSwapHandItemsEvent) {
         val player = event.player
         if (player.isSneaking) {
-            InteractionPlacementTool.decreaseHorizontalSize(player)
+            if (InteractionPlacementTool.decreaseHorizontalSize(player)) {
+                event.isCancelled = true
+            }
         } else {
-            InteractionPlacementTool.increaseHorizontalSize(player)
+            if (InteractionPlacementTool.increaseHorizontalSize(player)) {
+                event.isCancelled = true
+            }
         }
-        event.isCancelled = true
     }
 
     // with interactions, this is unnecessary, as you will always be left-clicking or right-clicking the preview interaction entity

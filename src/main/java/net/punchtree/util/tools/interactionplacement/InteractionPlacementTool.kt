@@ -66,12 +66,20 @@ object InteractionPlacementTool {
         return false
     }
 
-    fun decreaseHorizontalSize(player: Player) {
-        playersUsingInteractionPlacementTool[player]?.decreaseHorizontalSize()
+    fun decreaseHorizontalSize(player: Player): Boolean {
+        playersUsingInteractionPlacementTool[player]?.let {
+            it.decreaseHorizontalSize()
+            return true
+        }
+        return false
     }
 
-    fun increaseHorizontalSize(player: Player) {
-        playersUsingInteractionPlacementTool[player]?.increaseHorizontalSize()
+    fun increaseHorizontalSize(player: Player): Boolean {
+        playersUsingInteractionPlacementTool[player]?.let {
+            it.increaseHorizontalSize()
+            return true
+        }
+        return false
     }
 
 
