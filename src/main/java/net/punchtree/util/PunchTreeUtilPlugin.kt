@@ -4,6 +4,9 @@ import net.punchtree.util.color.ColoredScoreboardTeams
 import net.punchtree.util.commands.CustomModelDataCommand
 import net.punchtree.util.commands.UtiliKillCommand
 import net.punchtree.util.debugvar.DebugVarCommand
+import net.punchtree.util.interaction.HelloWorldCallback
+import net.punchtree.util.interaction.InteractionCallback
+import net.punchtree.util.interaction.InteractionCallbackListener
 import net.punchtree.util.playingcards.*
 import net.punchtree.util.playingcards.pokerchips.PokerChipsListener
 import net.punchtree.util.sounds.soundtest.SoundMenu
@@ -38,6 +41,9 @@ class PunchTreeUtilPlugin : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PlacementToolListener(), this)
         Bukkit.getPluginManager().registerEvents(InteractionPlacementToolListener(), this)
         Bukkit.getPluginManager().registerEvents(InteractionTagToolListener(), this)
+        Bukkit.getPluginManager().registerEvents(InteractionCallbackListener(), this)
+
+        InteractionCallbackListener.registerCallback("hello-world", HelloWorldCallback)
 
         MovePacketListener.enable()
         Bukkit.getPluginManager().registerEvents(SoundMenu(), this)
