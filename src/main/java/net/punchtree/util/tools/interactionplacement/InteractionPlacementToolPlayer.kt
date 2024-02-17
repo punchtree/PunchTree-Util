@@ -46,7 +46,7 @@ class InteractionPlacementToolPlayer(val player: Player) {
 
     init {
         if (player.inventory.itemInMainHand.type == Material.AIR) {
-            player.inventory.setItem(EquipmentSlot.HAND, ItemStack(Material.RED_STAINED_GLASS, 1))
+//            player.inventory.setItem(EquipmentSlot.HAND, ItemStack(Material.RED_STAINED_GLASS, 1))
         }
     }
 
@@ -181,9 +181,12 @@ class InteractionPlacementToolPlayer(val player: Player) {
         selectedForDestructionPreview = player.world.spawnEntity(interaction.location.add(0.0, interaction.interactionHeight / 2.0, 0.0), EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             it as ItemDisplay
             it.itemStack = ItemStack(Material.RED_STAINED_GLASS, 1)
-            it.transformation.scale.x = interaction.interactionWidth
-            it.transformation.scale.y = interaction.interactionHeight
-            it.transformation.scale.z = interaction.interactionWidth
+            it.transformation = Transformation(
+                previewDisplay.transformation.translation,
+                previewDisplay.transformation.leftRotation,
+                Vector3f(interaction.interactionWidth, interaction.interactionHeight, interaction.interactionWidth),
+                previewDisplay.transformation.rightRotation
+            )
             it.isGlowing = true
             PunchTreeColor.RED.glowingTeam.addEntity(it)
         } as ItemDisplay
