@@ -21,7 +21,7 @@ commands:
         permission: punchtree.in-progress-testing.playing-cards
         aliases: [ pc ]
     soundtest:
-        usage: /soundtest [page #]
+        usage: "/soundtest [page #]"
         aliases: st
         description: Browse minecraft sounds with /st [page #]
         permission: punchtree.soundtest
@@ -30,9 +30,13 @@ commands:
         aliases: [ pmt ]
         permission: punchtree.admin.placementtool
     interactionplacementtool:
-        usage: /interactionplacementtool [on|off]
+        usage: /interactionplacementtool [help]
         aliases: [ ipmt ]
         permission: punchtree.admin.interactionplacementtool
+    interactiontagtool:
+        usage: /interactiontagtool [help]
+        aliases: [ itt ]
+        permission: punchtree.admin.interactiontagtool
     utilikill:
         usage: /utilikill <tag> [max distance] [type]
         aliases: [ uk ]

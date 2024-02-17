@@ -12,6 +12,9 @@ import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolCom
 import net.punchtree.util.tools.MovePacketListener
 import net.punchtree.util.tools.interactionplacement.InteractionPlacementTool
 import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolListener
+import net.punchtree.util.tools.interactiontag.InteractionTagTool
+import net.punchtree.util.tools.interactiontag.InteractionTagToolCommand
+import net.punchtree.util.tools.interactiontag.InteractionTagToolListener
 import net.punchtree.util.tools.placement.PlacementTool
 import net.punchtree.util.tools.placement.PlacementToolCommand
 import net.punchtree.util.tools.placement.PlacementToolListener
@@ -29,10 +32,12 @@ class PunchTreeUtilPlugin : JavaPlugin() {
         getCommand("soundtest")!!.setExecutor(SoundTestCommand())
         getCommand("placementtool")!!.setExecutor(PlacementToolCommand)
 		getCommand("interactionplacementtool")!!.setExecutor(InteractionPlacementToolCommand)
+        getCommand("interactiontagtool")!!.setExecutor(InteractionTagToolCommand)
         getCommand("utilikill")!!.setExecutor(UtiliKillCommand)
 
         Bukkit.getPluginManager().registerEvents(PlacementToolListener(), this)
         Bukkit.getPluginManager().registerEvents(InteractionPlacementToolListener(), this)
+        Bukkit.getPluginManager().registerEvents(InteractionTagToolListener(), this)
 
         MovePacketListener.enable()
         Bukkit.getPluginManager().registerEvents(SoundMenu(), this)
@@ -55,6 +60,7 @@ class PunchTreeUtilPlugin : JavaPlugin() {
     override fun onDisable() {
         PlacementTool.onDisable()
         InteractionPlacementTool.onDisable()
+        InteractionTagTool.onDisable()
         MovePacketListener.disable()
     }
 

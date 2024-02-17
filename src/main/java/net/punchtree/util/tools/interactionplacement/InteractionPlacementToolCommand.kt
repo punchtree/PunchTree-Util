@@ -20,24 +20,6 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
         }
 
         when(args[0]) {
-//            "test" -> {
-//                sender.sendMessage("Interaction Test")
-//                val testInteraction = sender.world.spawnEntity(sender.location, EntityType.INTERACTION, CreatureSpawnEvent.SpawnReason.CUSTOM) {
-//                    it.isGlowing = true
-//                    it.addScoreboardTag("test-interaction")
-//                    it.addScoreboardTag("loqinttemp")
-//                } as Interaction
-//                val testDisplay = sender.world.spawnEntity(sender.location.apply {
-//                     y += 0.5
-//                     yaw = 0f
-//                     pitch = 0f
-//                }, EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
-//                    (it as ItemDisplay).itemStack = ItemStack(Material.WHITE_CONCRETE, 1)
-//                    it.isGlowing = true
-//                    it.addScoreboardTag("test-display")
-//                    it.addScoreboardTag("loqinttemp")
-//                } as ItemDisplay
-//            }
             "on" -> {
                 InteractionPlacementTool.enableFor(sender)
                 sender.sendMessage("Interaction placement tool enabled")
@@ -67,12 +49,12 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
             }
             "help" -> {
                 sender.sendMessage("Interaction placement tool help:")
-                sender.sendMessage("/ipt - toggle the interaction placement tool on and off")
-                sender.sendMessage("/ipt on - enable the interaction placement tool")
-                sender.sendMessage("/ipt off - disable the interaction placement tool")
-                sender.sendMessage("/ipt addtag <tag> - add a tag to be added to placed interactions")
-                sender.sendMessage("/ipt removetag <tag> - remove a tag from being added to placed interactions")
-                sender.sendMessage("/ipt cleartags - clear all tags to be added to placed interactions")
+                sender.sendMessage("/ipmt - toggle the interaction placement tool on and off")
+                sender.sendMessage("/ipmt on - enable the interaction placement tool")
+                sender.sendMessage("/ipmt off - disable the interaction placement tool")
+                sender.sendMessage("/ipmt addtag <tag> - add a tag to be added to placed interactions")
+                sender.sendMessage("/ipmt removetag <tag> - remove a tag from being added to placed interactions")
+                sender.sendMessage("/ipmt cleartags - clear all tags to be added to placed interactions")
             }
             else -> return false
         }
@@ -81,7 +63,7 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
     }
 
     override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>?): MutableList<String>? {
-        if (args == null || args.isEmpty() || args.size <= 1) return mutableListOf("on", "off")
+        if (args == null || args.isEmpty() || args.size <= 1) return mutableListOf("help", "on", "off", "addtag", "removetag", "cleartags")
         return mutableListOf()
     }
 

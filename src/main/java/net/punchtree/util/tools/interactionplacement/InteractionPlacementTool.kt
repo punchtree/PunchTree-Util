@@ -33,6 +33,7 @@ object InteractionPlacementTool {
 
     fun onDisable() {
         playersUsingInteractionPlacementTool.values.forEach { it.disable() }
+        playersUsingInteractionPlacementTool.clear()
     }
 
     fun onLeftClick(player: Player): Boolean {
