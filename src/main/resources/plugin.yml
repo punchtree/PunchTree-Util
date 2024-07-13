@@ -41,6 +41,10 @@ commands:
         usage: /utilikill <tag> [max distance] [type]
         aliases: [ uk ]
         permission: punchtree.admin.utilikill
+    visualize:
+        usage: /visualize <subcommand(s)>
+        aliases: [ viz ]
+        permission: punchtree.admin.visualize
 
 permissions:
     punchtree.debugvar:

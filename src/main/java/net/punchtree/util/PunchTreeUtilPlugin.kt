@@ -22,6 +22,7 @@ import net.punchtree.util.tools.interactiontag.InteractionTagToolListener
 import net.punchtree.util.tools.placement.PlacementTool
 import net.punchtree.util.tools.placement.PlacementToolCommand
 import net.punchtree.util.tools.placement.PlacementToolListener
+import net.punchtree.util.visualization.VisualizationTestingCommand
 import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
@@ -38,6 +39,7 @@ class PunchTreeUtilPlugin : JavaPlugin() {
 		getCommand("interactionplacementtool")!!.setExecutor(InteractionPlacementToolCommand)
         getCommand("interactiontagtool")!!.setExecutor(InteractionTagToolCommand)
         getCommand("utilikill")!!.setExecutor(UtiliKillCommand)
+        getCommand("visualize")!!.setExecutor(VisualizationTestingCommand)
 
         Bukkit.getPluginManager().registerEvents(PlacementToolListener(), this)
         Bukkit.getPluginManager().registerEvents(InteractionPlacementToolListener(), this)
