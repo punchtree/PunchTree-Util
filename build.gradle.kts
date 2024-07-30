@@ -33,8 +33,9 @@ kotlin {
 }
 
 group = "net.punchtree"
-version = "0.1.0-SNAPSHOT"
+version = "1.7.0-SNAPSHOT"
 description = "PunchTree-Util"
+
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 publishing {
