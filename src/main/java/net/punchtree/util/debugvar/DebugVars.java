@@ -1,5 +1,7 @@
 package net.punchtree.util.debugvar;
 
+import org.bukkit.Location;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -9,6 +11,7 @@ public class DebugVars {
 	static Map<String, Integer> debugIntegers = new TreeMap<>();
 	static Map<String, Double> debugDecimals = new TreeMap<>();
 	static Map<String, Boolean> debugBooleans = new TreeMap<>();
+	static Map<String, Location> debugLocations = new TreeMap<>();
 	
 	public static void setString(String key, String value, boolean override) {
 		key = key.toLowerCase();
@@ -30,11 +33,18 @@ public class DebugVars {
 			debugDecimals.put(key, value);
 		}
 	}
-	
+
 	public static void setBoolean(String key, boolean value, boolean override) {
 		key = key.toLowerCase();
 		if (debugBooleans.containsKey(key) || override) {
 			debugBooleans.put(key, value);
+		}
+	}
+
+	public static void setLocation(String key, Location value, boolean override) {
+		key = key.toLowerCase();
+		if (debugLocations.containsKey(key) || override) {
+			debugLocations.put(key, value);
 		}
 	}
 	
@@ -73,6 +83,12 @@ public class DebugVars {
 		key = key.toLowerCase();
 		debugBooleans.putIfAbsent(key, defaultValue);
 		return debugBooleans.get(key);
+	}
+
+	public static Location getLocation(String key, Location defaultValue) {
+		key = key.toLowerCase();
+		debugLocations.putIfAbsent(key, defaultValue);
+		return debugLocations.get(key);
 	}
 	
 }

@@ -1,15 +1,16 @@
 package net.punchtree.util.debugvar;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DebugVarCommand implements CommandExecutor, TabCompleter {
 
@@ -29,10 +30,12 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 		}
 		
 		String subcommand = args[0].toLowerCase();
-		
+
+		// TODO we can genericize this by creating some sort of implementable interface
+
 		switch (subcommand) {
 		case "set":
-			if (args.length < 4) {
+            if (args.length < 3 || (!"loc".equalsIgnoreCase(args[1]) && !"location".equalsIgnoreCase(args[1]) && args.length < 4)) {
 				showUsage(sender);
 				return true;
 			}
@@ -94,13 +97,26 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 				}
 				
 				break;
+			case "loc":
+			case "location":
+
+				if ( ! (sender instanceof Player player)) {
+					sender.sendMessage(ChatColor.RED + "Cannot set a location unless you're in-game!");
+					return true;
+				}
+
+				longType = "location";
+				existingVar = DebugVars.getLocation(varKey, null);
+				DebugVars.setLocation(varKey, player.getLocation(), true);
+
+				break;
 			default: 
 				showUsage(sender);
 				return true;
 			}			
 			
 			if (existingVar != null) {
-				sender.sendMessage(ChatColor.YELLOW + "(overwrote previous value of " + String.valueOf(existingVar) + ")");
+				sender.sendMessage(ChatColor.YELLOW + "(overwrote previous value of " + existingVar + ")");
 			}
 			
 			printDebugVariable(sender, longType, varKey, stringValue);
@@ -137,6 +153,11 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 			case "boolean":
 				longType = "boolean";
 				existingVar = DebugVars.getBoolean(varKey, null);
+				break;
+			case "loc":
+			case "location":
+				longType = "location";
+				existingVar = DebugVars.getLocation(varKey, null);
 				break;
 			default: 
 				showUsage(sender);
@@ -192,6 +213,14 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 				}
 				DebugVars.debugBooleans.forEach((key, value) -> printDebugVariable(sender, "boolean", key, value));
 				break;
+			case "loc":
+			case "location":
+				if (DebugVars.debugLocations.isEmpty()) {
+					sender.sendMessage(ChatColor.AQUA + "No debug locations defined to display");
+					return true;
+				}
+				DebugVars.debugLocations.forEach((key, value) -> printDebugVariable(sender, "location", key, value));
+				break;
 			default: 
 				showUsage(sender);
 				return true;
@@ -212,7 +241,7 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 	}
 
 	private void showUsage(CommandSender sender) {
-		sender.sendMessage(ChatColor.GREEN + "<type> one of: str[ing] int[eger] dec[imal] bool[ean]");
+		sender.sendMessage(ChatColor.GREEN + "<type> one of: str[ing] int[eger] dec[imal] bool[ean] loc[ation]");
 		sender.sendMessage(ChatColor.GREEN + "/debugvar set <type> <var> <value>");
 		sender.sendMessage(ChatColor.GREEN + "/debugvar get <type> <var>");
 		sender.sendMessage(ChatColor.GREEN + "/debugvar list <type>");
@@ -231,7 +260,7 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 			if ( ! (args[0].equalsIgnoreCase("get") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("list"))) {				
 				break;
 			}
-			StringUtil.copyPartialMatches(args[1], Arrays.asList("string", "integer", "decimal", "boolean"), completions);
+			StringUtil.copyPartialMatches(args[1], Arrays.asList("string", "integer", "decimal", "boolean", "location"), completions);
 			break;
 		case 3:
 			if ( ! (args[0].equalsIgnoreCase("get") || args[0].equalsIgnoreCase("set"))) {
@@ -254,6 +283,10 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 			case "bool":
 			case "boolean":
 				StringUtil.copyPartialMatches(args[2], DebugVars.debugBooleans.keySet(), completions);
+				break;
+			case "loc":
+			case "location":
+				StringUtil.copyPartialMatches(args[2], DebugVars.debugLocations.keySet(), completions);
 				break;
 			}
 			break;
