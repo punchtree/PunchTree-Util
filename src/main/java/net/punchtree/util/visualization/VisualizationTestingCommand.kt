@@ -16,8 +16,8 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
         when (val subcommand = args[0].lowercase()) {
             "modeltest" -> doModelTest(sender, args)
             "line" -> VisualizationTesting.doLine(sender)
-//            "circle" -> VisualizationTesting.doCircle(sender)
-//            "cleanup" -> VisualizationTesting.onDisable()
+            "triangle", "tri" -> VisualizationTesting.doTriangle(sender)
+            "triangle-path" -> VisualizationTesting.doTrianglePath(sender)
             else -> sender.sendMessage("Unknown subcommand: $subcommand")
         }
         return true
@@ -31,6 +31,7 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
 
         when (val model = args[1]) {
             "line" -> VisualizationTesting.modelTest(sender, Visualization.LINE_MODEL)
+            "triangle", "tri" -> VisualizationTesting.modelTest(sender, Visualization.TRIANGLE_MODEL)
 
             else -> sender.sendMessage("Unknown model: $model")
         }
@@ -44,10 +45,10 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
     ): MutableList<String>? {
         return when {
             args == null || args.size <= 1 -> {
-                mutableListOf("modeltest", "line")
+                mutableListOf("modeltest", "line", "triangle", "triangle-path")
             }
             args.size == 2 && args[0].lowercase()  == "modeltest" -> {
-                mutableListOf("line")
+                mutableListOf("line", "triangle")
             }
             else -> {
                 mutableListOf()
