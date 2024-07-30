@@ -5,16 +5,16 @@ import net.punchtree.util.commands.CustomModelDataCommand
 import net.punchtree.util.commands.UtiliKillCommand
 import net.punchtree.util.debugvar.DebugVarCommand
 import net.punchtree.util.interaction.HelloWorldCallback
-import net.punchtree.util.interaction.InteractionCallback
 import net.punchtree.util.interaction.InteractionCallbackListener
 import net.punchtree.util.interaction.InteractionCallbackManager
+import net.punchtree.util.interaction.pizza.DoughBin
 import net.punchtree.util.playingcards.*
 import net.punchtree.util.playingcards.pokerchips.PokerChipsListener
 import net.punchtree.util.sounds.soundtest.SoundMenu
 import net.punchtree.util.sounds.soundtest.SoundTestCommand
-import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolCommand
 import net.punchtree.util.tools.MovePacketListener
 import net.punchtree.util.tools.interactionplacement.InteractionPlacementTool
+import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolCommand
 import net.punchtree.util.tools.interactionplacement.InteractionPlacementToolListener
 import net.punchtree.util.tools.interactiontag.InteractionTagTool
 import net.punchtree.util.tools.interactiontag.InteractionTagToolCommand
@@ -46,12 +46,18 @@ class PunchTreeUtilPlugin : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(InteractionTagToolListener(), this)
         Bukkit.getPluginManager().registerEvents(InteractionCallbackListener(), this)
 
-        InteractionCallbackManager.registerCallback("hello-world", HelloWorldCallback)
+        InteractionCallbackManager.registerCallback("hello_world", HelloWorldCallback)
 
         MovePacketListener.enable()
         Bukkit.getPluginManager().registerEvents(SoundMenu(), this)
         initializePlayingCards()
         initializePokerChips()
+
+        initializePizzaTest()
+    }
+
+    private fun initializePizzaTest() {
+        InteractionCallbackManager.registerCallback("pizza_dough_bin", DoughBin)
     }
 
     private fun initializePokerChips() {
@@ -77,5 +83,6 @@ class PunchTreeUtilPlugin : JavaPlugin() {
         @JvmStatic
 		val instance: Plugin
             get() = getPlugin(PunchTreeUtilPlugin::class.java)
+        const val NAMESPACE = "punchtree"
     }
 }
