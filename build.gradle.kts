@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.0.0"
     `java-library`
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "1.5.11"
+    id("io.papermc.paperweight.userdev") version "1.7.1"
 }
 
 repositories {
@@ -21,7 +21,7 @@ repositories {
 dependencies {
     compileOnly(kotlin("stdlib"))
 
-    paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
 
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
 
@@ -29,7 +29,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 group = "net.punchtree"
@@ -37,6 +37,7 @@ version = "1.7.0-SNAPSHOT"
 description = "PunchTree-Util"
 
 java.sourceCompatibility = JavaVersion.VERSION_17
+paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
 publishing {
     publications.create<MavenPublication>("maven") {
@@ -45,17 +46,12 @@ publishing {
 }
 
 tasks {
-    // Configure reobfJar to run when invoking the build task
-    assemble {
-        dependsOn(reobfJar)
-    }
-
     compileJava {
         options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
 
         // Set the release flag. This configures what version bytecode the compiler will emit, as well as what JDK APIs are usable.
         // See https://openjdk.java.net/jeps/247 for more information.
-        options.release.set(17)
+        options.release.set(21)
     }
     javadoc {
         options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
@@ -83,6 +79,5 @@ val buildLocal by tasks.registering(Copy::class) {
             project.file("build/libs")
         }
     })
-    dependsOn("reobfJar")
     dependsOn("publishToMavenLocal")
 }

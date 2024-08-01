@@ -51,7 +51,7 @@ class Visualization {
                 CreatureSpawnEvent.SpawnReason.CUSTOM
             ) {
                 it as ItemDisplay
-                it.itemStack = LINE_MODEL
+                it.setItemStack(LINE_MODEL)
                 it.transformation = transformationMatrix
                 it.scoreboardTags.add("loqinttemp")
                 it.isGlowing = true
@@ -100,7 +100,7 @@ class Visualization {
                 CreatureSpawnEvent.SpawnReason.CUSTOM
             ) {
                 it as ItemDisplay
-                it.itemStack = TRIANGLE_MODEL
+                it.setItemStack(TRIANGLE_MODEL)
                 it.setTransformationMatrix(transformationMatrix)
                 it.glowColorOverride = PunchTreeColor(255, 200, 200).bukkitColor
                 it.scoreboardTags.add("loqinttemp")

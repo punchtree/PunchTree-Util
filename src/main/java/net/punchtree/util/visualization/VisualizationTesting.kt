@@ -89,7 +89,7 @@ class VisualizationTesting {
                 CreatureSpawnEvent.SpawnReason.CUSTOM
             ) {
                 it as ItemDisplay
-                it.itemStack = model
+                it.setItemStack(model)
                 it.scoreboardTags.add("loqinttemp")
             } as ItemDisplay
 

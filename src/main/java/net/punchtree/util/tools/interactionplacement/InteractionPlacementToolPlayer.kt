@@ -5,9 +5,11 @@ import net.minecraft.util.Mth.clamp
 import net.punchtree.util.color.PunchTreeColor
 import net.punchtree.util.tools.placement.PlacementToolPlayer.Companion.snapToPixelGrid
 import org.bukkit.Material
-import org.bukkit.entity.*
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.Interaction
+import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.Player
 import org.bukkit.event.entity.CreatureSpawnEvent
-import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Transformation
 import org.joml.Vector3f
@@ -33,7 +35,7 @@ class InteractionPlacementToolPlayer(val player: Player) {
     private val previewDisplay: ItemDisplay =
         player.world.spawnEntity(snapToPixelGrid(player.location), EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             it as ItemDisplay
-            it.itemStack = ItemStack(Material.RED_STAINED_GLASS, 1)
+            it.setItemStack(ItemStack(Material.RED_STAINED_GLASS, 1))
         } as ItemDisplay
     private val previewInteraction: Interaction =
         player.world.spawnEntity(snapToPixelGrid(player.location), EntityType.INTERACTION, CreatureSpawnEvent.SpawnReason.CUSTOM) {
@@ -180,7 +182,7 @@ class InteractionPlacementToolPlayer(val player: Player) {
         }
         selectedForDestructionPreview = player.world.spawnEntity(interaction.location.add(0.0, interaction.interactionHeight / 2.0, 0.0), EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             it as ItemDisplay
-            it.itemStack = ItemStack(Material.RED_STAINED_GLASS, 1)
+            it.setItemStack(ItemStack(Material.RED_STAINED_GLASS, 1))
             it.transformation = Transformation(
                 previewDisplay.transformation.translation,
                 previewDisplay.transformation.leftRotation,

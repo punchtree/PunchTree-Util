@@ -1,7 +1,6 @@
 package net.punchtree.util.tools.placement
 
 import net.punchtree.util.color.PunchTreeColor
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -50,7 +49,7 @@ class PlacementToolPlayer(val player: Player) {
                 selectedForDestructionModel = null
             }
         }
-        previewDisplay.itemStack = player.inventory.itemInMainHand
+        previewDisplay.setItemStack(player.inventory.itemInMainHand)
         player.rayTraceBlocks(REACH)?.let {
             previewDisplay.teleport(snapToPixelGrid(it.hitPosition.toLocation(previewDisplay.world)).apply {
                 yaw = this@PlacementToolPlayer.yaw
@@ -78,7 +77,7 @@ class PlacementToolPlayer(val player: Player) {
         }
         player.world.spawnEntity(previewDisplay.location, EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             val placedItem: ItemDisplay = it as ItemDisplay
-            placedItem.itemStack = previewDisplay.itemStack
+            placedItem.setItemStack(previewDisplay.itemStack)
             placedItem.setRotation(yaw, 0f)
             placedItem.addScoreboardTag(PLACEMENT_TOOL_PLACED_TAG)
             player.playSound(player.location, PLACEMENT_SOUND, 1f, 1f)

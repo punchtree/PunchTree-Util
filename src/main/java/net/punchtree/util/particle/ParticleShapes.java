@@ -8,7 +8,7 @@ import org.bukkit.util.Vector;
 
 public class ParticleShapes {
 
-    private static ParticleBuilder particleBuilder = new ParticleBuilder(Particle.REDSTONE).color(Color.WHITE);
+    private static ParticleBuilder particleBuilder = new ParticleBuilder(Particle.DUST).color(Color.WHITE);
 
     public static void setParticleBuilder(ParticleBuilder particleBuilder) {
         ParticleShapes.particleBuilder = particleBuilder;

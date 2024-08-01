@@ -81,7 +81,7 @@ object PizzaWorkingSpotCallback : InteractionCallback {
         // We take for granted that this is a pizza working spot interaction
         val paddleDisplay = interaction.world.spawnEntity(interaction.location, EntityType.ITEM_DISPLAY, CreatureSpawnEvent.SpawnReason.CUSTOM) {
             it as ItemDisplay
-            it.itemStack = PizzaItems.PIZZA_PADDLE_ITEM
+            it.setItemStack(PizzaItems.PIZZA_PADDLE_ITEM)
         } as ItemDisplay
 
     }
