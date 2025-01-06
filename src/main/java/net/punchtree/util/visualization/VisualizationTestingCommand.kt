@@ -8,10 +8,10 @@ import org.bukkit.entity.Player
 
 object VisualizationTestingCommand : CommandExecutor, TabCompleter {
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if ( sender !is Player) return false
-        if (args == null || args.isEmpty()) return false
+        if (args.isEmpty()) return false
 
         when (val subcommand = args[0].lowercase()) {
             "modeltest" -> doModelTest(sender, args)
@@ -41,10 +41,10 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String>?
+        args: Array<out String>
     ): MutableList<String>? {
         return when {
-            args == null || args.size <= 1 -> {
+            args.size <= 1 -> {
                 mutableListOf("modeltest", "line", "triangle", "triangle-path")
             }
             args.size == 2 && args[0].lowercase()  == "modeltest" -> {

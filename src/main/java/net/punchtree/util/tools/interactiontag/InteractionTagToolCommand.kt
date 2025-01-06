@@ -14,9 +14,9 @@ object InteractionTagToolCommand : CommandExecutor, TabCompleter {
     //  help with the problem of enforcing only one tool at a time (some sort of manager that tracks a link between
     //  one player to one tool in abstract)
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) return false
-        if (args == null || args.isEmpty()) {
+        if (args.isEmpty()) {
             InteractionTagTool.toggleFor(sender)
             return true
         }
@@ -57,8 +57,8 @@ object InteractionTagToolCommand : CommandExecutor, TabCompleter {
         return true
     }
 
-    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>?): MutableList<String>? {
-        if (args == null || args.isEmpty() || args.size <= 1) return mutableListOf("on", "off", "inspect", "addtags", "removetags", "cleartags")
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>): MutableList<String>? {
+        if (args.isEmpty() || args.size <= 1) return mutableListOf("on", "off", "inspect", "addtags", "removetags", "cleartags")
         return mutableListOf()
     }
 

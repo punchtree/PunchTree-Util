@@ -8,9 +8,9 @@ import org.bukkit.entity.Player
 
 object PlacementToolCommand : CommandExecutor, TabCompleter {
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) return false
-        if (args == null || args.isEmpty()) {
+        if (args.isEmpty()) {
             val nowEnabled = PlacementTool.toggleFor(sender)
             sender.sendMessage("Placement tool ${if (nowEnabled) "enabled" else "disabled"}")
             return true
@@ -31,8 +31,8 @@ object PlacementToolCommand : CommandExecutor, TabCompleter {
         return true
     }
 
-    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>?): MutableList<String>? {
-        if (args == null || args.isEmpty() || args.size <= 1) return mutableListOf("on", "off")
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>): MutableList<String>? {
+        if (args.isEmpty() || args.size <= 1) return mutableListOf("on", "off")
         return mutableListOf()
     }
 

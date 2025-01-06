@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.0"
     `java-library`
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "1.7.1"
+    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
 }
 
 repositories {
@@ -21,9 +21,9 @@ repositories {
 dependencies {
     compileOnly(kotlin("stdlib"))
 
-    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
 
-    compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
+    compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
 
     implementation("net.kyori:adventure-text-minimessage:4.15.0")
 }
@@ -36,7 +36,7 @@ group = "net.punchtree"
 version = "1.7.0-SNAPSHOT"
 description = "PunchTree-Util"
 
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
 publishing {
@@ -52,9 +52,6 @@ tasks {
         // Set the release flag. This configures what version bytecode the compiler will emit, as well as what JDK APIs are usable.
         // See https://openjdk.java.net/jeps/247 for more information.
         options.release.set(21)
-    }
-    javadoc {
-        options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
     }
     processResources {
         filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything

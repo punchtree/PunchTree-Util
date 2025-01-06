@@ -11,9 +11,9 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
 
     private val validTagPattern = Pattern.compile("^[a-z0-9-:]+$")
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) return false
-        if (args == null || args.isEmpty()) {
+        if (args.isEmpty()) {
             val nowEnabled = InteractionPlacementTool.toggleFor(sender)
             sender.sendMessage("Interaction placement tool ${if (nowEnabled) "enabled" else "disabled"}")
             return true
@@ -62,8 +62,8 @@ object InteractionPlacementToolCommand : CommandExecutor, TabCompleter {
         return true
     }
 
-    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>?): MutableList<String>? {
-        if (args == null || args.isEmpty() || args.size <= 1) return mutableListOf("help", "on", "off", "addtag", "removetag", "cleartags")
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>): MutableList<String>? {
+        if (args.isEmpty() || args.size <= 1) return mutableListOf("help", "on", "off", "addtag", "removetag", "cleartags")
         return mutableListOf()
     }
 
