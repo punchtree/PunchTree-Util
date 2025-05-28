@@ -31,6 +31,13 @@ class VisualizationTesting {
             Visualization.drawLine(player, point1, point2)
         }
 
+        fun doCuboid(player: Player, halfExtents: Vector) {
+            val min = player.location.clone().subtract(halfExtents)
+            val max = player.location.clone().add(halfExtents)
+
+            Visualization.drawCuboid(player, min, max)
+        }
+
         fun doTriangle(player: Player) {
             val forward = player.eyeLocation.direction.normalize()
             val right = Vector(0, 1, 0).crossProduct(forward).normalize() // modifies lhs

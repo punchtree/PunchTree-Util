@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
+import org.bukkit.util.Vector
 
 object VisualizationTestingCommand : CommandExecutor, TabCompleter {
 
@@ -18,6 +19,7 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
             "line" -> VisualizationTesting.doLine(sender)
             "triangle", "tri" -> VisualizationTesting.doTriangle(sender)
             "triangle-path" -> VisualizationTesting.doTrianglePath(sender)
+            "cuboid" -> VisualizationTesting.doCuboid(sender, Vector(5, 5, 5))
             else -> sender.sendMessage("Unknown subcommand: $subcommand")
         }
         return true
@@ -32,6 +34,7 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
         when (val model = args[1]) {
             "line" -> VisualizationTesting.modelTest(sender, Visualization.LINE_MODEL)
             "triangle", "tri" -> VisualizationTesting.modelTest(sender, Visualization.TRIANGLE_MODEL)
+            "cuboid" -> VisualizationTesting.modelTest(sender, Visualization.CUBOID_MODEL)
 
             else -> sender.sendMessage("Unknown model: $model")
         }
@@ -45,7 +48,7 @@ object VisualizationTestingCommand : CommandExecutor, TabCompleter {
     ): MutableList<String>? {
         return when {
             args.size <= 1 -> {
-                mutableListOf("modeltest", "line", "triangle", "triangle-path")
+                mutableListOf("modeltest", "line", "triangle", "triangle-path", "cuboid")
             }
             args.size == 2 && args[0].lowercase()  == "modeltest" -> {
                 mutableListOf("line", "triangle")

@@ -8,6 +8,7 @@ import net.punchtree.util.color.PunchTreeColor
 import net.punchtree.util.particle.ParticleShapes
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.Particle
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemDisplay
@@ -16,10 +17,12 @@ import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.util.Transformation
+import org.bukkit.util.Vector
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.math.abs
 import kotlin.math.acos
 
 class Visualization {
@@ -38,7 +41,16 @@ class Visualization {
             }
         }
 
+        val CUBOID_MODEL = ItemStack(Material.LEATHER_CHESTPLATE).also {
+            it.editMeta { itemMeta ->
+                itemMeta.itemModel = NamespacedKey("punchtree", "recolorable")
+                itemMeta.setCustomModelData(300)
+                itemMeta.displayName(Component.text("Cuboid"))
+            }
+        }
 
+        // TODO FIXME this fails when axis-aligned on the Z axis - it's degenerate or something
+        //  I think this bug probably affects cuboid too
         fun drawLine(audience: Audience, point1: Location, point2: Location) {
             val transformationMatrix = getLineTransformationMatrix(point1, point2)
 
@@ -158,6 +170,51 @@ class Visualization {
 
 
             return transformationMatrix
+        }
+
+        fun drawCuboid(player: Player, a: Location, b: Location) {
+            require(a.world == b.world) { "The locations of the cuboid corners have to be in the same world!" }
+            // TODO take any corners and calculate min and max ourselves
+            val centerLocation = Location(a.world, (a.x + b.x) / 2.0, (a.y + b.y) / 2.0, (a.z + b.z) / 2.0)
+            val halfExtents = Vector(
+                abs(b.x - a.x) / 2.0,
+                abs(b.y - a.y) / 2.0,
+                abs(b.z - a.z) / 2.0
+            )
+            drawCuboid(player, centerLocation, halfExtents)
+        }
+
+        fun drawCuboid(player: Player, center: Location, halfExtents: Vector) {
+            val scale = Vector3f(
+                (halfExtents.x * 2).toFloat(),
+                (halfExtents.y * 2).toFloat(),
+                (halfExtents.z * 2).toFloat()
+            )
+            val transformationMatrix = Transformation(Vector3f(), Quaternionf(), scale, Quaternionf())
+
+            val display = center.world.spawnEntity(
+                center.clone().also {
+                    it.yaw = 0f
+                    it.pitch = 0f
+                },
+                EntityType.ITEM_DISPLAY,
+                CreatureSpawnEvent.SpawnReason.CUSTOM
+            ) {
+                it as ItemDisplay
+                it.setItemStack(CUBOID_MODEL)
+                it.transformation = transformationMatrix
+                it.glowColorOverride = PunchTreeColor(255, 200, 200).bukkitColor
+                it.scoreboardTags.add("loqinttemp")
+                it.isGlowing = true
+            } as ItemDisplay
+
+            object : BukkitRunnable() {
+                override fun run() {
+                    display.remove()
+                }
+            }.runTaskLater(PunchTreeUtilPlugin.instance, 60)
+            // TODO track temporary display entities and delete on server shutdown as a productionizing step
+            // TODO this API really needs a way to customize display time
         }
     }
 }
