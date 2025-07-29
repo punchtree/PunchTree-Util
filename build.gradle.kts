@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.1.0"
     `java-library`
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
 }
 
 repositories {
@@ -21,7 +21,7 @@ repositories {
 dependencies {
     compileOnly(kotlin("stdlib"))
 
-    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
 
     compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
 
