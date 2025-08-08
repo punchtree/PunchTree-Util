@@ -20,11 +20,14 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 	// Could make get work without a type specified
 	// Could make set work without a type specified
 	// Could make longtypes be printed in different colors
+
+	// TODO make overwrote message not show if value hasn't changed - display message saying such instead
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 	
 		if (args.length == 0) {
+			// TODO make no arg default to get subcommand
 			showUsage(sender);
 			return true;
 		}
@@ -39,10 +42,12 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 				showUsage(sender);
 				return true;
 			}
+			boolean isLocation = "loc".equalsIgnoreCase(args[1]) || "location".equalsIgnoreCase(args[1]);
+
 			String type = args[1].toLowerCase();
 			String longType = null;
 			String varKey = args[2].toLowerCase();
-			String stringValue = args[3];
+			String stringValue = isLocation ? "" : args[3];
 			Object existingVar = null;
 			
 			switch ( type ) {
@@ -108,6 +113,7 @@ public class DebugVarCommand implements CommandExecutor, TabCompleter {
 				longType = "location";
 				existingVar = DebugVars.getLocation(varKey, null);
 				DebugVars.setLocation(varKey, player.getLocation(), true);
+				stringValue = player.getLocation().toString(); // TODO maybe simplify this string?
 
 				break;
 			default: 
