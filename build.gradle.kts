@@ -19,6 +19,13 @@ repositories {
 }
 
 dependencies {
+    constraints {
+        implementation("net.kyori:adventure-text-serializer-ansi") {
+            version { prefer("4.24.0") }
+            because("Paper dev-bundle snapshot v2.0.0-beta.18 requested this module without a version")
+        }
+    }
+
     compileOnly(kotlin("stdlib"))
 
     paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
